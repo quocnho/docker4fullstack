@@ -46,7 +46,11 @@ cd your-project && ./start.sh     # Start your project
 
 ---
 
-## 🌟 Why Choose QUOCNHO Docker Environment?Transform your development experience with our **battle-tested, production-ready** Docker environment that supports multiple technology stacks seamlessly. Whether you're building with PHP/Laravel, Flutter mobile apps, or Vue.js PWAs, we've got you covered
+## 🌟 *Why choose QUOCNHO Docker Environment?*
+
+*At QUOCNHO Team, we faced constant challenges managing multiple client projects across different technology stacks - PHP/Laravel for web applications, Flutter for mobile apps, Vue.js for PWAs, and Node.js for APIs. Each project required different setups, conflicting dependencies, and hours of environment configuration for every team member. We lost countless hours troubleshooting "works on my machine" issues instead of focusing on actual development.*
+
+*That's why we created this battle-tested, production-ready Docker environment - to eliminate setup friction and let teams focus on building amazing applications, not fighting with configurations.*
 
 ### ✨ **Key Features**
 
@@ -133,7 +137,7 @@ cd docker4fullstack
 <br>PHP Framework, Doctrine
 </td>
 <td align="center">
-<img src="https://www.codeigniter.com/assets/images/ci-logo-big.png" width="120" alt="CodeIgniter">
+<img src="https://codeigniter.com/assets/images/codeigniter4logo.png" width="120" alt="CodeIgniter">
 <br><strong>CodeIgniter</strong>
 <br>Lightweight PHP, MVC
 </td>
