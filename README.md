@@ -17,6 +17,31 @@
 
 ---
 
+## 🙋‍♂️ **About the Project**
+
+<div align="center">
+
+**Docker for FullStack Environment** is a comprehensive, production-ready containerized development platform designed to revolutionize how modern development teams build multi-technology applications. Born from the real-world challenges of managing complex tech stacks, this project eliminates the notorious "works on my machine" syndrome that plagues development teams worldwide.
+
+Our **Docker-powered ecosystem** seamlessly integrates **PHP** (8.1-8.4) with popular frameworks like **Laravel**, **CodeIgniter**, and **Symfony**, while simultaneously supporting **Node.js** development for **Vue.js**, **React**, and **Angular** applications. The platform extends beyond traditional web development by incorporating **Flutter** for cross-platform mobile development and **PWA** (Progressive Web App) capabilities, making it a true **FullStack** solution.
+
+At its core, this environment leverages **Docker Compose** orchestration to manage **MySQL 8.0** databases, **Redis** caching, **Apache/Nginx** web servers, and development tools like **Xdebug** for **VS Code** integration. The **containerized architecture** ensures consistent environments across Windows, macOS, and Linux, while the **interactive setup system** allows teams to selectively choose their technology stack components.
+
+What sets this project apart is its **professional deployment pipeline** featuring **GitHub Actions** integration for **VPS deployment** with **Virtualmin** compatibility. The system includes automatic backup management, zero-downtime deployments, and comprehensive health monitoring - transforming local development into production-ready applications effortlessly.
+
+Whether you're building **Laravel APIs**, **Vue.js PWAs**, **Flutter mobile apps**, or **full-stack web applications**, this Docker environment provides the reliability, scalability, and developer experience that modern teams demand. Join our growing community of developers who've already streamlined their workflows and eliminated configuration headaches forever.
+
+**Created with ❤️ by the Docker for FullStack Community**
+
+[![GitHub](https://img.shields.io/badge/GitHub-Repository-blue?style=flat-square&logo=github)](https://github.com/docker4fullstack)
+[![Contributions](https://img.shields.io/badge/Contributions-Welcome-green?style=flat-square)](./CONTRIBUTING.md)
+
+*Building developer tools that make coding enjoyable again*
+
+</div>
+
+---
+
 ## ⚡ **Quick Start**
 
 Get your development environment running in 3 simple steps:
@@ -261,31 +286,6 @@ If this project helps you and your team, please consider giving it a ⭐ on GitH
 **Every contribution, no matter how small, is greatly appreciated!** 🙏
 
 *Tặng tôi ly cà phê để tiếp tục phát triển những công cụ hữu ích cho cộng đồng developer!* ☕
-
----
-
-## 🙋‍♂️ **About the Project**
-
-<div align="center">
-
-**Docker for FullStack Environment** is a comprehensive, production-ready containerized development platform designed to revolutionize how modern development teams build multi-technology applications. Born from the real-world challenges of managing complex tech stacks, this project eliminates the notorious "works on my machine" syndrome that plagues development teams worldwide.
-
-Our **Docker-powered ecosystem** seamlessly integrates **PHP** (8.1-8.4) with popular frameworks like **Laravel**, **CodeIgniter**, and **Symfony**, while simultaneously supporting **Node.js** development for **Vue.js**, **React**, and **Angular** applications. The platform extends beyond traditional web development by incorporating **Flutter** for cross-platform mobile development and **PWA** (Progressive Web App) capabilities, making it a true **FullStack** solution.
-
-At its core, this environment leverages **Docker Compose** orchestration to manage **MySQL 8.0** databases, **Redis** caching, **Apache/Nginx** web servers, and development tools like **Xdebug** for **VS Code** integration. The **containerized architecture** ensures consistent environments across Windows, macOS, and Linux, while the **interactive setup system** allows teams to selectively choose their technology stack components.
-
-What sets this project apart is its **professional deployment pipeline** featuring **GitHub Actions** integration for **VPS deployment** with **Virtualmin** compatibility. The system includes automatic backup management, zero-downtime deployments, and comprehensive health monitoring - transforming local development into production-ready applications effortlessly.
-
-Whether you're building **Laravel APIs**, **Vue.js PWAs**, **Flutter mobile apps**, or **full-stack web applications**, this Docker environment provides the reliability, scalability, and developer experience that modern teams demand. Join our growing community of developers who've already streamlined their workflows and eliminated configuration headaches forever.
-
-**Created with ❤️ by the Docker for FullStack Community**
-
-[![GitHub](https://img.shields.io/badge/GitHub-Repository-blue?style=flat-square&logo=github)](https://github.com/docker4fullstack)
-[![Contributions](https://img.shields.io/badge/Contributions-Welcome-green?style=flat-square)](./CONTRIBUTING.md)
-
-*Building developer tools that make coding enjoyable again*
-
-</div>
 
 ---
 
