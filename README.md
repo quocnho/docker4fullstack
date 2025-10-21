@@ -40,6 +40,7 @@ cd docker4fullstack
 ## ✨ **Features**
 
 ### 🔧 **Multi-Technology Support**
+
 - **PHP** (8.1-8.4) with Laravel, CodeIgniter, Symfony
 - **Node.js** 18+ for Vue.js, React, Angular development
 - **Flutter** for cross-platform mobile development
@@ -47,6 +48,7 @@ cd docker4fullstack
 - **Web Server** Apache/Nginx with SSL support
 
 ### 🚀 **Professional Deployment**
+
 - **GitHub Actions** integration for VPS deployment
 - **Automatic backups** before each deployment
 - **Zero-downtime** deployments with health checks
@@ -54,6 +56,7 @@ cd docker4fullstack
 - **SSL certificates** automatic management
 
 ### 👥 **Team Collaboration**
+
 - **Interactive setup** with technology selection
 - **Project isolation** - multiple projects simultaneously
 - **Consistent environments** across all team members
@@ -61,6 +64,7 @@ cd docker4fullstack
 - **Easy project switching** and management
 
 ### 🛠️ **Developer Experience**
+
 - **VS Code** integration with Xdebug ready
 - **Port conflict prevention** automatic detection
 - **Requirements checking** automatic validation
@@ -129,6 +133,7 @@ Docker4FullStack/
 ## 🚀 **Development Workflow**
 
 ### 1. **Project Setup**
+
 ```bash
 # Interactive menu for project selection
 ./scripts/setup.sh
@@ -139,6 +144,7 @@ Docker4FullStack/
 ```
 
 ### 2. **Daily Development**
+
 ```bash
 # Start your development environment
 ./scripts/start.sh
@@ -150,6 +156,7 @@ Docker4FullStack/
 ```
 
 ### 3. **Container Management**
+
 ```bash
 # Check container status
 ./scripts/container-helper.sh status
@@ -163,6 +170,7 @@ Docker4FullStack/
 ```
 
 ### 4. **Deployment**
+
 ```bash
 # Push to main branch triggers automatic deployment
 git push origin main
@@ -178,18 +186,21 @@ git push origin main
 ## 🎯 **Benefits**
 
 ### ✅ **For Developers**
+
 - **Zero setup time** - Works instantly on any machine
 - **No conflicts** - Isolated environments for each project
 - **Professional tools** - Xdebug, hot reload, live debugging
 - **Multi-technology** - PHP, Node.js, Flutter in one environment
 
 ### ✅ **For Teams**
+
 - **Consistency** - Identical environments for all team members
 - **Collaboration** - Easy project sharing and onboarding
 - **Standards** - Enforced coding standards and best practices
 - **Scalability** - Support for multiple simultaneous projects
 
 ### ✅ **For Production**
+
 - **Automated deployment** - GitHub Actions VPS integration
 - **Safety** - Automatic backups and health checks
 - **Performance** - Optimized container configurations
@@ -223,6 +234,7 @@ git push origin main
 We welcome contributions from the community! Please see our [Contributing Guide](./CONTRIBUTING.md) for details.
 
 ### 📋 **How to Contribute**
+
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/amazing-feature`)
 3. Commit your changes (`git commit -m 'Add amazing feature'`)
@@ -243,9 +255,12 @@ If this project helps you and your team, please consider giving it a ⭐ on GitH
 
 *Building and maintaining this Docker environment takes time and effort. Community support helps continue improving and adding new features!*
 
+[![PayPal](https://img.shields.io/badge/PayPal-Donate-blue?style=for-the-badge&logo=paypal)](https://paypal.me/quocnho)
 [![GitHub Sponsors](https://img.shields.io/badge/GitHub-Sponsors-red?style=for-the-badge&logo=github)](https://github.com/sponsors)
 
 **Every contribution, no matter how small, is greatly appreciated!** 🙏
+
+*Tặng tôi ly cà phê để tiếp tục phát triển những công cụ hữu ích cho cộng đồng developer!* ☕
 
 ---
 
