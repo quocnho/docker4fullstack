@@ -1,0 +1,178 @@
+name: Deploy to VPS with Virtualmin
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+    types: [ closed ]
+
+jobs:
+  deploy:
+    name: Deploy to VPS
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup SSH Key
+      uses: webfactory/ssh-agent@v0.8.0
+      with:
+        ssh-private-key: ${{ secrets.VPS_SSH_KEY }}
+
+    - name: Add VPS to known hosts
+      run: |
+        mkdir -p ~/.ssh
+        ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+
+    - name: Deploy to VPS
+      env:
+        VPS_HOST: ${{ secrets.VPS_HOST }}
+        VPS_USER: ${{ secrets.VPS_USER }}
+        VPS_PATH: ${{ secrets.VPS_PATH }}
+        DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}
+      run: |
+        # Create deployment script
+        cat > deploy.sh << 'EOF'
+        #!/bin/bash
+        set -e
+
+        echo "🚀 Starting deployment to VPS..."
+
+        # Project variables
+        PROJECT_PATH="${VPS_PATH}"
+        BACKUP_DIR="${PROJECT_PATH}/backups"
+
+        # Create backup directory if not exists
+        mkdir -p "$BACKUP_DIR"
+
+        # Create backup of current deployment
+        if [ -d "$PROJECT_PATH/public_html" ]; then
+          echo "📦 Creating backup..."
+          BACKUP_NAME="backup_$(date +%Y%m%d_%H%M%S)"
+          tar -czf "$BACKUP_DIR/$BACKUP_NAME.tar.gz" -C "$PROJECT_PATH" public_html
+          echo "✅ Backup created: $BACKUP_NAME.tar.gz"
+
+          # Keep only last 5 backups
+          cd "$BACKUP_DIR"
+          ls -t *.tar.gz | tail -n +6 | xargs -r rm
+        fi
+
+        # Create directories if not exist
+        mkdir -p "$PROJECT_PATH/public_html"
+        mkdir -p "$PROJECT_PATH/logs"
+        mkdir -p "$PROJECT_PATH/tmp"
+
+        # Set proper permissions for Virtualmin
+        chown -R $VPS_USER:$VPS_USER "$PROJECT_PATH"
+        chmod -R 755 "$PROJECT_PATH/public_html"
+
+        echo "✅ Deployment directories prepared"
+        EOF
+
+        # Make script executable and copy to VPS
+        chmod +x deploy.sh
+        scp deploy.sh $VPS_USER@$VPS_HOST:/tmp/
+
+        # Execute deployment script on VPS
+        ssh $VPS_USER@$VPS_HOST "bash /tmp/deploy.sh"
+
+        # Sync project files to VPS
+        echo "📁 Syncing project files..."
+        rsync -avz --delete \
+          --exclude='.git' \
+          --exclude='.github' \
+          --exclude='node_modules' \
+          --exclude='vendor' \
+          --exclude='.env' \
+          --exclude='*.log' \
+          ./ $VPS_USER@$VPS_HOST:$VPS_PATH/public_html/
+
+        # Set final permissions
+        ssh $VPS_USER@$VPS_HOST "
+          cd $VPS_PATH/public_html
+
+          # Set ownership to domain user (Virtualmin standard)
+          chown -R $VPS_USER:$VPS_USER .
+
+          # Set directory permissions
+          find . -type d -exec chmod 755 {} \;
+
+          # Set file permissions
+          find . -type f -exec chmod 644 {} \;
+
+          # Make scripts executable
+          find . -name '*.sh' -exec chmod +x {} \;
+
+          echo '✅ File permissions updated'
+        "
+
+    - name: Post-deployment tasks
+      env:
+        VPS_HOST: ${{ secrets.VPS_HOST }}
+        VPS_USER: ${{ secrets.VPS_USER }}
+        VPS_PATH: ${{ secrets.VPS_PATH }}
+      run: |
+        ssh $VPS_USER@$VPS_HOST "
+          cd $VPS_PATH/public_html
+
+          # Create .htaccess if it doesn't exist
+          if [ ! -f .htaccess ]; then
+            cat > .htaccess << 'HTACCESS'
+RewriteEngine On
+
+# Handle Angular/Vue.js routes
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.html [L]
+
+# Security headers
+Header always set X-Content-Type-Options nosniff
+Header always set X-Frame-Options DENY
+Header always set X-XSS-Protection \"1; mode=block\"
+Header always set Strict-Transport-Security \"max-age=31536000; includeSubDomains\"
+
+# Cache static assets
+<FilesMatch \"\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$\">
+  ExpiresActive On
+  ExpiresDefault \"access plus 1 month\"
+</FilesMatch>
+HTACCESS
+          fi
+
+          echo '✅ Post-deployment tasks completed'
+        "
+
+    - name: Verify deployment
+      env:
+        DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}
+      run: |
+        echo "🔍 Verifying deployment..."
+
+        # Wait a moment for web server to pick up changes
+        sleep 10
+
+        # Check if site is accessible
+        if curl -f -s "https://$DOMAIN_NAME" > /dev/null; then
+          echo "✅ Site is accessible at https://$DOMAIN_NAME"
+        elif curl -f -s "http://$DOMAIN_NAME" > /dev/null; then
+          echo "⚠️  Site is accessible at http://$DOMAIN_NAME (no HTTPS)"
+        else
+          echo "❌ Site is not accessible"
+          exit 1
+        fi
+
+    - name: Notify deployment status
+      if: always()
+      env:
+        DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}
+      run: |
+        if [ "${{ job.status }}" == "success" ]; then
+          echo "🎉 Deployment successful! Site is live at https://$DOMAIN_NAME"
+        else
+          echo "❌ Deployment failed. Check the logs above for details."
+        fi

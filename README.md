@@ -229,7 +229,7 @@ cd docker4fullstack
 
 - [📖 **Complete Guide**](./docs/README.md) - Detailed setup instructions
 - [🔧 **Configuration**](./docs/MULTI_PROJECT_GUIDE.md) - Customize your environment
-- [🚀 **Deployment**](./templates/github-actions/) - CI/CD workflow templates
+- [🚀 **Deployment**](./templates/github-actions/) - VPS deployment with Virtualmin
 - [❓ **FAQ**](./docs/FAQ.md) - Common questions answered
 - [🛠️ **Troubleshooting**](./scripts/check-requirements.sh) - System validation tool
 

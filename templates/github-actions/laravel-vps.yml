@@ -1,0 +1,387 @@
+name: Deploy Laravel to VPS with Virtualmin
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+    types: [ closed ]
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: password
+          MYSQL_DATABASE: laravel_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.3'
+        extensions: mbstring, dom, fileinfo, mysql, gd, zip
+        coverage: xdebug
+
+    - name: Cache Composer packages
+      id: composer-cache
+      uses: actions/cache@v3
+      with:
+        path: vendor
+        key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-php-
+
+    - name: Install dependencies
+      run: |
+        composer install --no-progress --prefer-dist --optimize-autoloader
+
+    - name: Copy environment file
+      run: cp .env.example .env
+
+    - name: Generate application key
+      run: php artisan key:generate
+
+    - name: Create SQLite database
+      run: touch database/database.sqlite
+
+    - name: Run database migrations
+      env:
+        DB_CONNECTION: sqlite
+        DB_DATABASE: database/database.sqlite
+      run: php artisan migrate --force
+
+    - name: Run PHPUnit tests
+      env:
+        DB_CONNECTION: sqlite
+        DB_DATABASE: database/database.sqlite
+      run: vendor/bin/phpunit
+
+  deploy:
+    name: Deploy to VPS
+    runs-on: ubuntu-latest
+    needs: test
+    if: (github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)) && needs.test.result == 'success'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.3'
+        extensions: mbstring, dom, fileinfo, mysql, gd, zip
+
+    - name: Install Composer dependencies
+      run: |
+        composer install --no-dev --optimize-autoloader --no-progress --prefer-dist
+
+    - name: Setup SSH Key
+      uses: webfactory/ssh-agent@v0.8.0
+      with:
+        ssh-private-key: ${{ secrets.VPS_SSH_KEY }}
+
+    - name: Add VPS to known hosts
+      run: |
+        mkdir -p ~/.ssh
+        ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+
+    - name: Deploy Laravel to VPS
+      env:
+        VPS_HOST: ${{ secrets.VPS_HOST }}
+        VPS_USER: ${{ secrets.VPS_USER }}
+        VPS_PATH: ${{ secrets.VPS_PATH }}
+        DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}
+        DB_HOST: ${{ secrets.DB_HOST }}
+        DB_DATABASE: ${{ secrets.DB_DATABASE }}
+        DB_USERNAME: ${{ secrets.DB_USERNAME }}
+        DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      run: |
+        # Create Laravel deployment script
+        cat > deploy-laravel.sh << 'EOF'
+        #!/bin/bash
+        set -e
+
+        echo "🚀 Starting Laravel deployment to VPS..."
+
+        # Project variables
+        PROJECT_PATH="${VPS_PATH}"
+        BACKUP_DIR="${PROJECT_PATH}/backups"
+
+        # Create directories
+        mkdir -p "$BACKUP_DIR"
+        mkdir -p "$PROJECT_PATH/public_html"
+        mkdir -p "$PROJECT_PATH/storage"
+        mkdir -p "$PROJECT_PATH/storage/logs"
+        mkdir -p "$PROJECT_PATH/storage/framework/cache"
+        mkdir -p "$PROJECT_PATH/storage/framework/sessions"
+        mkdir -p "$PROJECT_PATH/storage/framework/views"
+        mkdir -p "$PROJECT_PATH/bootstrap/cache"
+
+        # Create backup of current deployment
+        if [ -d "$PROJECT_PATH/public_html" ] && [ "$(ls -A $PROJECT_PATH/public_html)" ]; then
+          echo "📦 Creating backup..."
+          BACKUP_NAME="laravel_backup_$(date +%Y%m%d_%H%M%S)"
+          tar -czf "$BACKUP_DIR/$BACKUP_NAME.tar.gz" -C "$PROJECT_PATH" public_html storage bootstrap/cache
+          echo "✅ Backup created: $BACKUP_NAME.tar.gz"
+
+          # Keep only last 5 backups
+          cd "$BACKUP_DIR"
+          ls -t *.tar.gz | tail -n +6 | xargs -r rm
+        fi
+
+        echo "✅ Laravel deployment directories prepared"
+        EOF
+
+        # Make script executable and copy to VPS
+        chmod +x deploy-laravel.sh
+        scp deploy-laravel.sh $VPS_USER@$VPS_HOST:/tmp/
+
+        # Execute deployment script on VPS
+        ssh $VPS_USER@$VPS_HOST "bash /tmp/deploy-laravel.sh"
+
+        # Sync Laravel files to VPS (excluding public folder initially)
+        echo "📁 Syncing Laravel application files..."
+        rsync -avz --delete \
+          --exclude='.git' \
+          --exclude='.github' \
+          --exclude='node_modules' \
+          --exclude='.env' \
+          --exclude='*.log' \
+          --exclude='public' \
+          --exclude='storage/logs/*' \
+          --exclude='storage/framework/cache/*' \
+          --exclude='storage/framework/sessions/*' \
+          --exclude='storage/framework/views/*' \
+          --exclude='bootstrap/cache/*' \
+          ./ $VPS_USER@$VPS_HOST:$VPS_PATH/laravel-app/
+
+        # Sync public folder to public_html (Virtualmin web root)
+        echo "📁 Syncing public files to web root..."
+        rsync -avz \
+          ./public/ $VPS_USER@$VPS_HOST:$VPS_PATH/public_html/
+
+    - name: Configure Laravel on VPS
+      env:
+        VPS_HOST: ${{ secrets.VPS_HOST }}
+        VPS_USER: ${{ secrets.VPS_USER }}
+        VPS_PATH: ${{ secrets.VPS_PATH }}
+        DB_HOST: ${{ secrets.DB_HOST }}
+        DB_DATABASE: ${{ secrets.DB_DATABASE }}
+        DB_USERNAME: ${{ secrets.DB_USERNAME }}
+        DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        APP_KEY: ${{ secrets.APP_KEY }}
+        APP_URL: ${{ secrets.APP_URL }}
+      run: |
+        ssh $VPS_USER@$VPS_HOST "
+          cd $VPS_PATH/laravel-app
+
+          # Create .env file
+          cat > .env << 'ENVFILE'
+APP_NAME=Laravel
+APP_ENV=production
+APP_KEY=$APP_KEY
+APP_DEBUG=false
+APP_URL=$APP_URL
+
+LOG_CHANNEL=stack
+LOG_DEPRECATIONS_CHANNEL=null
+LOG_LEVEL=error
+
+DB_CONNECTION=mysql
+DB_HOST=$DB_HOST
+DB_PORT=3306
+DB_DATABASE=$DB_DATABASE
+DB_USERNAME=$DB_USERNAME
+DB_PASSWORD=$DB_PASSWORD
+
+BROADCAST_DRIVER=log
+CACHE_DRIVER=file
+FILESYSTEM_DISK=local
+QUEUE_CONNECTION=sync
+SESSION_DRIVER=file
+SESSION_LIFETIME=120
+
+MEMCACHED_HOST=127.0.0.1
+
+REDIS_HOST=127.0.0.1
+REDIS_PASSWORD=null
+REDIS_PORT=6379
+
+MAIL_MAILER=smtp
+MAIL_HOST=mailpit
+MAIL_PORT=1025
+MAIL_USERNAME=null
+MAIL_PASSWORD=null
+MAIL_ENCRYPTION=null
+MAIL_FROM_ADDRESS=\"hello@example.com\"
+MAIL_FROM_NAME=\"\${APP_NAME}\"
+ENVFILE
+
+          # Update public/index.php to point to correct Laravel app location
+          cat > ../public_html/index.php << 'INDEXPHP'
+<?php
+
+use Illuminate\Contracts\Http\Kernel;
+use Illuminate\Http\Request;
+
+define('LARAVEL_START', microtime(true));
+
+// Determine if the application is in maintenance mode...
+if (file_exists(__DIR__.'/../laravel-app/storage/framework/maintenance.php')) {
+    require __DIR__.'/../laravel-app/storage/framework/maintenance.php';
+}
+
+// Register the Composer autoloader...
+require __DIR__.'/../laravel-app/vendor/autoload.php';
+
+// Bootstrap Laravel and handle the request...
+(require_once __DIR__.'/../laravel-app/bootstrap/app.php')
+    ->handleRequest(Request::capture());
+INDEXPHP
+
+          # Set proper permissions
+          chown -R $VPS_USER:$VPS_USER $VPS_PATH
+          chmod -R 755 $VPS_PATH/public_html
+          chmod -R 755 $VPS_PATH/laravel-app/storage
+          chmod -R 755 $VPS_PATH/laravel-app/bootstrap/cache
+
+          echo '✅ Laravel configuration completed'
+        "
+
+    - name: Run Laravel deployment tasks
+      env:
+        VPS_HOST: ${{ secrets.VPS_HOST }}
+        VPS_USER: ${{ secrets.VPS_USER }}
+        VPS_PATH: ${{ secrets.VPS_PATH }}
+      run: |
+        ssh $VPS_USER@$VPS_HOST "
+          cd $VPS_PATH/laravel-app
+
+          # Clear all caches
+          php artisan config:clear
+          php artisan cache:clear
+          php artisan route:clear
+          php artisan view:clear
+
+          # Run optimizations
+          php artisan config:cache
+          php artisan route:cache
+          php artisan view:cache
+
+          # Run database migrations (if needed)
+          php artisan migrate --force
+
+          # Create symbolic link for storage (if not exists)
+          if [ ! -L ../public_html/storage ]; then
+            ln -s ../laravel-app/storage/app/public ../public_html/storage
+          fi
+
+          echo '✅ Laravel deployment tasks completed'
+        "
+
+    - name: Create Laravel .htaccess
+      env:
+        VPS_HOST: ${{ secrets.VPS_HOST }}
+        VPS_USER: ${{ secrets.VPS_USER }}
+        VPS_PATH: ${{ secrets.VPS_PATH }}
+      run: |
+        ssh $VPS_USER@$VPS_HOST "
+          cd $VPS_PATH/public_html
+
+          # Create Laravel-specific .htaccess
+          cat > .htaccess << 'HTACCESS'
+<IfModule mod_rewrite.c>
+    <IfModule mod_negotiation.c>
+        Options -MultiViews -Indexes
+    </IfModule>
+
+    RewriteEngine On
+
+    # Handle Authorization Header
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+    # Redirect Trailing Slashes If Not A Folder...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_URI} (.+)/$
+    RewriteRule ^ %1 [L,R=301]
+
+    # Send Requests To Front Controller...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ index.php [L]
+</IfModule>
+
+# Security headers
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options nosniff
+    Header always set X-Frame-Options DENY
+    Header always set X-XSS-Protection \"1; mode=block\"
+    Header always set Referrer-Policy \"strict-origin-when-cross-origin\"
+</IfModule>
+
+# Cache static assets
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType text/css \"access plus 1 month\"
+    ExpiresByType application/javascript \"access plus 1 month\"
+    ExpiresByType image/png \"access plus 1 month\"
+    ExpiresByType image/jpg \"access plus 1 month\"
+    ExpiresByType image/jpeg \"access plus 1 month\"
+    ExpiresByType image/gif \"access plus 1 month\"
+    ExpiresByType image/svg+xml \"access plus 1 month\"
+    ExpiresByType application/font-woff \"access plus 1 month\"
+    ExpiresByType application/font-woff2 \"access plus 1 month\"
+</IfModule>
+HTACCESS
+
+          echo '✅ Laravel .htaccess created'
+        "
+
+    - name: Verify Laravel deployment
+      env:
+        DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}
+      run: |
+        echo "🔍 Verifying Laravel deployment..."
+
+        # Wait for web server to pick up changes
+        sleep 15
+
+        # Check if Laravel site is accessible
+        if curl -f -s "https://$DOMAIN_NAME" > /dev/null; then
+          echo "✅ Laravel site is accessible at https://$DOMAIN_NAME"
+        elif curl -f -s "http://$DOMAIN_NAME" > /dev/null; then
+          echo "⚠️  Laravel site is accessible at http://$DOMAIN_NAME (no HTTPS)"
+        else
+          echo "❌ Laravel site is not accessible"
+          exit 1
+        fi
+
+    - name: Notify deployment status
+      if: always()
+      env:
+        DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}
+      run: |
+        if [ "${{ job.status }}" == "success" ]; then
+          echo "🎉 Laravel deployment successful! Site is live at https://$DOMAIN_NAME"
+        else
+          echo "❌ Laravel deployment failed. Check the logs above for details."
+        fi

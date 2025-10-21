@@ -1,0 +1,333 @@
+name: Deploy Flutter Web to VPS with Virtualmin
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+    types: [ closed ]
+
+jobs:
+  test-and-build:
+    name: Test and Build Flutter Web
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.19.0'
+        channel: 'stable'
+        cache: true
+
+    - name: Get dependencies
+      run: flutter pub get
+
+    - name: Analyze code
+      run: flutter analyze
+
+    - name: Run tests
+      run: flutter test
+
+    - name: Build web
+      run: |
+        flutter build web --release --web-renderer html
+
+        # Verify build output
+        ls -la build/web/
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: flutter-web
+        path: build/web/
+        retention-days: 1
+
+  deploy:
+    name: Deploy to VPS
+    runs-on: ubuntu-latest
+    needs: test-and-build
+    if: (github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)) && needs.test-and-build.result == 'success'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Download build artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: flutter-web
+        path: build/web/
+
+    - name: Setup SSH Key
+      uses: webfactory/ssh-agent@v0.8.0
+      with:
+        ssh-private-key: ${{ secrets.VPS_SSH_KEY }}
+
+    - name: Add VPS to known hosts
+      run: |
+        mkdir -p ~/.ssh
+        ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+
+    - name: Deploy Flutter Web to VPS
+      env:
+        VPS_HOST: ${{ secrets.VPS_HOST }}
+        VPS_USER: ${{ secrets.VPS_USER }}
+        VPS_PATH: ${{ secrets.VPS_PATH }}
+        DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}
+      run: |
+        # Create Flutter web deployment script
+        cat > deploy-flutter.sh << 'EOF'
+        #!/bin/bash
+        set -e
+
+        echo "🚀 Starting Flutter Web deployment to VPS..."
+
+        # Project variables
+        PROJECT_PATH="${VPS_PATH}"
+        BACKUP_DIR="${PROJECT_PATH}/backups"
+
+        # Create directories
+        mkdir -p "$BACKUP_DIR"
+        mkdir -p "$PROJECT_PATH/public_html"
+
+        # Create backup of current deployment
+        if [ -d "$PROJECT_PATH/public_html" ] && [ "$(ls -A $PROJECT_PATH/public_html)" ]; then
+          echo "📦 Creating backup..."
+          BACKUP_NAME="flutter_backup_$(date +%Y%m%d_%H%M%S)"
+          tar -czf "$BACKUP_DIR/$BACKUP_NAME.tar.gz" -C "$PROJECT_PATH" public_html
+          echo "✅ Backup created: $BACKUP_NAME.tar.gz"
+
+          # Keep only last 5 backups
+          cd "$BACKUP_DIR"
+          ls -t *.tar.gz | tail -n +6 | xargs -r rm
+        fi
+
+        echo "✅ Flutter Web deployment directories prepared"
+        EOF
+
+        # Make script executable and copy to VPS
+        chmod +x deploy-flutter.sh
+        scp deploy-flutter.sh $VPS_USER@$VPS_HOST:/tmp/
+
+        # Execute deployment script on VPS
+        ssh $VPS_USER@$VPS_HOST "bash /tmp/deploy-flutter.sh"
+
+        # Sync Flutter web build to VPS
+        echo "📁 Syncing Flutter Web files to VPS..."
+        rsync -avz --delete \
+          ./build/web/ $VPS_USER@$VPS_HOST:$VPS_PATH/public_html/
+
+    - name: Configure Flutter Web on VPS
+      env:
+        VPS_HOST: ${{ secrets.VPS_HOST }}
+        VPS_USER: ${{ secrets.VPS_USER }}
+        VPS_PATH: ${{ secrets.VPS_PATH }}
+        DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}
+      run: |
+        ssh $VPS_USER@$VPS_HOST "
+          cd $VPS_PATH/public_html
+
+          # Create Flutter Web .htaccess
+          cat > .htaccess << 'HTACCESS'
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Handle Flutter Web routing
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^.*$ /index.html [L]
+</IfModule>
+
+# Security headers
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options nosniff
+    Header always set X-Frame-Options DENY
+    Header always set X-XSS-Protection \"1; mode=block\"
+    Header always set Referrer-Policy \"strict-origin-when-cross-origin\"
+
+    # Flutter Web specific headers
+    <FilesMatch \"\.dart$\">
+        Header set Content-Type \"application/dart\"
+    </FilesMatch>
+
+    <FilesMatch \"\.wasm$\">
+        Header set Content-Type \"application/wasm\"
+    </FilesMatch>
+</IfModule>
+
+# Cache static assets
+<IfModule mod_expires.c>
+    ExpiresActive On
+
+    # HTML (for Flutter Web, cache briefly)
+    ExpiresByType text/html \"access plus 1 hour\"
+
+    # CSS and JavaScript
+    ExpiresByType text/css \"access plus 1 year\"
+    ExpiresByType application/javascript \"access plus 1 year\"
+    ExpiresByType text/javascript \"access plus 1 year\"
+
+    # Flutter Web assets
+    ExpiresByType application/dart \"access plus 1 year\"
+    ExpiresByType application/wasm \"access plus 1 year\"
+
+    # Images
+    ExpiresByType image/png \"access plus 1 year\"
+    ExpiresByType image/jpg \"access plus 1 year\"
+    ExpiresByType image/jpeg \"access plus 1 year\"
+    ExpiresByType image/gif \"access plus 1 year\"
+    ExpiresByType image/svg+xml \"access plus 1 year\"
+    ExpiresByType image/webp \"access plus 1 year\"
+    ExpiresByType image/ico \"access plus 1 year\"
+
+    # Fonts
+    ExpiresByType font/woff \"access plus 1 year\"
+    ExpiresByType font/woff2 \"access plus 1 year\"
+    ExpiresByType application/font-woff \"access plus 1 year\"
+    ExpiresByType application/font-woff2 \"access plus 1 year\"
+
+    # JSON files
+    ExpiresByType application/json \"access plus 1 hour\"
+    ExpiresByType application/manifest+json \"access plus 1 hour\"
+</IfModule>
+
+# Compression
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/plain
+    AddOutputFilterByType DEFLATE text/html
+    AddOutputFilterByType DEFLATE text/xml
+    AddOutputFilterByType DEFLATE text/css
+    AddOutputFilterByType DEFLATE application/xml
+    AddOutputFilterByType DEFLATE application/xhtml+xml
+    AddOutputFilterByType DEFLATE application/rss+xml
+    AddOutputFilterByType DEFLATE application/javascript
+    AddOutputFilterByType DEFLATE application/x-javascript
+    AddOutputFilterByType DEFLATE application/json
+    AddOutputFilterByType DEFLATE application/dart
+    AddOutputFilterByType DEFLATE text/javascript
+</IfModule>
+
+# MIME types for Flutter Web
+AddType application/dart .dart
+AddType application/wasm .wasm
+AddType application/manifest+json .webmanifest .json
+
+# Force HTTPS (optional - uncomment if using SSL)
+# RewriteCond %{HTTPS} off
+# RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+HTACCESS
+
+          # Set proper permissions
+          chown -R $VPS_USER:$VPS_USER $VPS_PATH
+          chmod -R 755 $VPS_PATH/public_html
+
+          echo '✅ Flutter Web configuration completed'
+        "
+
+    - name: Test Flutter Web deployment
+      env:
+        VPS_HOST: ${{ secrets.VPS_HOST }}
+        VPS_USER: ${{ secrets.VPS_USER }}
+        VPS_PATH: ${{ secrets.VPS_PATH }}
+        DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}
+      run: |
+        ssh $VPS_USER@$VPS_HOST "
+          cd $VPS_PATH/public_html
+
+          # Check if main Flutter files exist
+          if [ -f 'index.html' ]; then
+            echo '✅ index.html found'
+          else
+            echo '❌ index.html not found'
+            exit 1
+          fi
+
+          if [ -f 'main.dart.js' ]; then
+            echo '✅ main.dart.js found'
+          else
+            echo '⚠️  main.dart.js not found (may be using different build)'
+          fi
+
+          if [ -f 'flutter.js' ]; then
+            echo '✅ flutter.js found'
+          else
+            echo '⚠️  flutter.js not found'
+          fi
+
+          if [ -d 'assets' ]; then
+            echo '✅ assets directory found'
+          else
+            echo '⚠️  assets directory not found'
+          fi
+
+          if [ -d 'canvaskit' ]; then
+            echo '✅ CanvasKit found'
+          else
+            echo '⚠️  CanvasKit not found'
+          fi
+        "
+
+    - name: Verify Flutter Web deployment
+      env:
+        DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}
+      run: |
+        echo "🔍 Verifying Flutter Web deployment..."
+
+        # Wait for web server to pick up changes
+        sleep 10
+
+        # Check if site is accessible
+        if curl -f -s "https://$DOMAIN_NAME" > /dev/null; then
+          echo "✅ Flutter Web app is accessible at https://$DOMAIN_NAME"
+
+          # Check if it looks like Flutter content
+          CONTENT=$(curl -s "https://$DOMAIN_NAME")
+          if echo "$CONTENT" | grep -q "flutter"; then
+            echo "✅ Flutter Web content detected"
+          else
+            echo "⚠️  Flutter Web content not clearly detected"
+          fi
+
+        elif curl -f -s "http://$DOMAIN_NAME" > /dev/null; then
+          echo "⚠️  Flutter Web app is accessible at http://$DOMAIN_NAME (no HTTPS)"
+        else
+          echo "❌ Flutter Web app is not accessible"
+          exit 1
+        fi
+
+    - name: Performance check
+      env:
+        DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}
+      run: |
+        echo "🔍 Running Flutter Web performance checks..."
+
+        # Check main.dart.js size (should be optimized for production)
+        if curl -s "https://$DOMAIN_NAME/main.dart.js" | wc -c > /tmp/size.txt; then
+          SIZE=$(cat /tmp/size.txt)
+          echo "📊 main.dart.js size: $SIZE bytes"
+
+          # Warn if size is too large (>5MB might indicate debug build)
+          if [ "$SIZE" -gt 5242880 ]; then
+            echo "⚠️  main.dart.js is quite large ($SIZE bytes). Consider checking if this is a release build."
+          fi
+        fi
+
+        # Check response time
+        RESPONSE_TIME=$(curl -o /dev/null -s -w '%{time_total}' "https://$DOMAIN_NAME" || curl -o /dev/null -s -w '%{time_total}' "http://$DOMAIN_NAME")
+        echo "📊 Response time: ${RESPONSE_TIME}s"
+
+    - name: Notify deployment status
+      if: always()
+      env:
+        DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}
+      run: |
+        if [ "${{ job.status }}" == "success" ]; then
+          echo "🎉 Flutter Web deployment successful! App is live at https://$DOMAIN_NAME"
+          echo "🌐 Your Flutter app is now accessible from any web browser"
+        else
+          echo "❌ Flutter Web deployment failed. Check the logs above for details."
+        fi

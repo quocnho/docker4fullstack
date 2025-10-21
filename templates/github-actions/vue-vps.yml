@@ -1,0 +1,306 @@
+name: Deploy Vue.js PWA to VPS with Virtualmin
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+    types: [ closed ]
+
+jobs:
+  test-and-build:
+    name: Test and Build
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Run linting
+      run: npm run lint
+
+    - name: Run tests
+      run: npm run test:unit
+
+    - name: Build production
+      run: npm run build
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: dist
+        path: dist/
+        retention-days: 1
+
+  deploy:
+    name: Deploy to VPS
+    runs-on: ubuntu-latest
+    needs: test-and-build
+    if: (github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)) && needs.test-and-build.result == 'success'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Download build artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: dist
+        path: dist/
+
+    - name: Setup SSH Key
+      uses: webfactory/ssh-agent@v0.8.0
+      with:
+        ssh-private-key: ${{ secrets.VPS_SSH_KEY }}
+
+    - name: Add VPS to known hosts
+      run: |
+        mkdir -p ~/.ssh
+        ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+
+    - name: Deploy Vue.js PWA to VPS
+      env:
+        VPS_HOST: ${{ secrets.VPS_HOST }}
+        VPS_USER: ${{ secrets.VPS_USER }}
+        VPS_PATH: ${{ secrets.VPS_PATH }}
+        DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}
+      run: |
+        # Create Vue.js deployment script
+        cat > deploy-vue.sh << 'EOF'
+        #!/bin/bash
+        set -e
+
+        echo "🚀 Starting Vue.js PWA deployment to VPS..."
+
+        # Project variables
+        PROJECT_PATH="${VPS_PATH}"
+        BACKUP_DIR="${PROJECT_PATH}/backups"
+
+        # Create directories
+        mkdir -p "$BACKUP_DIR"
+        mkdir -p "$PROJECT_PATH/public_html"
+
+        # Create backup of current deployment
+        if [ -d "$PROJECT_PATH/public_html" ] && [ "$(ls -A $PROJECT_PATH/public_html)" ]; then
+          echo "📦 Creating backup..."
+          BACKUP_NAME="vue_backup_$(date +%Y%m%d_%H%M%S)"
+          tar -czf "$BACKUP_DIR/$BACKUP_NAME.tar.gz" -C "$PROJECT_PATH" public_html
+          echo "✅ Backup created: $BACKUP_NAME.tar.gz"
+
+          # Keep only last 5 backups
+          cd "$BACKUP_DIR"
+          ls -t *.tar.gz | tail -n +6 | xargs -r rm
+        fi
+
+        echo "✅ Vue.js deployment directories prepared"
+        EOF
+
+        # Make script executable and copy to VPS
+        chmod +x deploy-vue.sh
+        scp deploy-vue.sh $VPS_USER@$VPS_HOST:/tmp/
+
+        # Execute deployment script on VPS
+        ssh $VPS_USER@$VPS_HOST "bash /tmp/deploy-vue.sh"
+
+        # Sync built Vue.js app to VPS
+        echo "📁 Syncing Vue.js PWA files to VPS..."
+        rsync -avz --delete \
+          ./dist/ $VPS_USER@$VPS_HOST:$VPS_PATH/public_html/
+
+    - name: Configure Vue.js PWA on VPS
+      env:
+        VPS_HOST: ${{ secrets.VPS_HOST }}
+        VPS_USER: ${{ secrets.VPS_USER }}
+        VPS_PATH: ${{ secrets.VPS_PATH }}
+        DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}
+      run: |
+        ssh $VPS_USER@$VPS_HOST "
+          cd $VPS_PATH/public_html
+
+          # Create Vue.js SPA .htaccess
+          cat > .htaccess << 'HTACCESS'
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Handle Vue Router (history mode)
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^.*$ /index.html [L]
+</IfModule>
+
+# Security headers for PWA
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options nosniff
+    Header always set X-Frame-Options DENY
+    Header always set X-XSS-Protection \"1; mode=block\"
+    Header always set Referrer-Policy \"strict-origin-when-cross-origin\"
+
+    # PWA specific headers
+    <FilesMatch \"manifest\.json$\">
+        Header set Content-Type \"application/manifest+json\"
+    </FilesMatch>
+
+    <FilesMatch \"sw\.js$\">
+        Header set Content-Type \"application/javascript\"
+        Header set Cache-Control \"no-cache, no-store, must-revalidate\"
+    </FilesMatch>
+</IfModule>
+
+# Cache static assets
+<IfModule mod_expires.c>
+    ExpiresActive On
+
+    # HTML (no cache for SPA)
+    ExpiresByType text/html \"access plus 0 seconds\"
+
+    # CSS and JavaScript
+    ExpiresByType text/css \"access plus 1 year\"
+    ExpiresByType application/javascript \"access plus 1 year\"
+    ExpiresByType text/javascript \"access plus 1 year\"
+
+    # Images
+    ExpiresByType image/png \"access plus 1 year\"
+    ExpiresByType image/jpg \"access plus 1 year\"
+    ExpiresByType image/jpeg \"access plus 1 year\"
+    ExpiresByType image/gif \"access plus 1 year\"
+    ExpiresByType image/svg+xml \"access plus 1 year\"
+    ExpiresByType image/webp \"access plus 1 year\"
+
+    # Fonts
+    ExpiresByType font/woff \"access plus 1 year\"
+    ExpiresByType font/woff2 \"access plus 1 year\"
+    ExpiresByType application/font-woff \"access plus 1 year\"
+    ExpiresByType application/font-woff2 \"access plus 1 year\"
+
+    # PWA files (no cache)
+    ExpiresByType application/manifest+json \"access plus 0 seconds\"
+</IfModule>
+
+# Compression
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/plain
+    AddOutputFilterByType DEFLATE text/html
+    AddOutputFilterByType DEFLATE text/xml
+    AddOutputFilterByType DEFLATE text/css
+    AddOutputFilterByType DEFLATE application/xml
+    AddOutputFilterByType DEFLATE application/xhtml+xml
+    AddOutputFilterByType DEFLATE application/rss+xml
+    AddOutputFilterByType DEFLATE application/javascript
+    AddOutputFilterByType DEFLATE application/x-javascript
+    AddOutputFilterByType DEFLATE application/json
+    AddOutputFilterByType DEFLATE application/manifest+json
+</IfModule>
+
+# MIME types for PWA
+AddType application/manifest+json .webmanifest .json
+AddType text/cache-manifest .manifest
+
+# Force HTTPS (optional - uncomment if using SSL)
+# RewriteCond %{HTTPS} off
+# RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+HTACCESS
+
+          # Set proper permissions
+          chown -R $VPS_USER:$VPS_USER $VPS_PATH
+          chmod -R 755 $VPS_PATH/public_html
+
+          echo '✅ Vue.js PWA configuration completed'
+        "
+
+    - name: Test PWA features
+      env:
+        VPS_HOST: ${{ secrets.VPS_HOST }}
+        VPS_USER: ${{ secrets.VPS_USER }}
+        VPS_PATH: ${{ secrets.VPS_PATH }}
+        DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}
+      run: |
+        ssh $VPS_USER@$VPS_HOST "
+          cd $VPS_PATH/public_html
+
+          # Check if PWA manifest exists
+          if [ -f 'manifest.json' ] || [ -f 'manifest.webmanifest' ]; then
+            echo '✅ PWA manifest found'
+          else
+            echo '⚠️  PWA manifest not found'
+          fi
+
+          # Check if service worker exists
+          if [ -f 'sw.js' ] || [ -f 'service-worker.js' ]; then
+            echo '✅ Service Worker found'
+          else
+            echo '⚠️  Service Worker not found'
+          fi
+
+          # Check if index.html exists
+          if [ -f 'index.html' ]; then
+            echo '✅ index.html found'
+          else
+            echo '❌ index.html not found'
+            exit 1
+          fi
+        "
+
+    - name: Verify Vue.js PWA deployment
+      env:
+        DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}
+      run: |
+        echo "🔍 Verifying Vue.js PWA deployment..."
+
+        # Wait for web server to pick up changes
+        sleep 10
+
+        # Check if site is accessible
+        if curl -f -s "https://$DOMAIN_NAME" > /dev/null; then
+          echo "✅ Vue.js PWA is accessible at https://$DOMAIN_NAME"
+
+          # Check PWA manifest
+          if curl -f -s "https://$DOMAIN_NAME/manifest.json" > /dev/null || curl -f -s "https://$DOMAIN_NAME/manifest.webmanifest" > /dev/null; then
+            echo "✅ PWA manifest is accessible"
+          else
+            echo "⚠️  PWA manifest not accessible"
+          fi
+
+        elif curl -f -s "http://$DOMAIN_NAME" > /dev/null; then
+          echo "⚠️  Vue.js PWA is accessible at http://$DOMAIN_NAME (no HTTPS - PWA features may be limited)"
+        else
+          echo "❌ Vue.js PWA is not accessible"
+          exit 1
+        fi
+
+    - name: Performance audit (optional)
+      env:
+        DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}
+      run: |
+        echo "🔍 Running basic performance checks..."
+
+        # Check if gzip compression is working
+        if curl -H "Accept-Encoding: gzip" -s "https://$DOMAIN_NAME" | grep -q "gzip"; then
+          echo "✅ Gzip compression is working"
+        else
+          echo "⚠️  Gzip compression not detected"
+        fi
+
+        # Check response time
+        RESPONSE_TIME=$(curl -o /dev/null -s -w '%{time_total}' "https://$DOMAIN_NAME" || curl -o /dev/null -s -w '%{time_total}' "http://$DOMAIN_NAME")
+        echo "📊 Response time: ${RESPONSE_TIME}s"
+
+    - name: Notify deployment status
+      if: always()
+      env:
+        DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}
+      run: |
+        if [ "${{ job.status }}" == "success" ]; then
+          echo "🎉 Vue.js PWA deployment successful! Site is live at https://$DOMAIN_NAME"
+          echo "📱 PWA features should be available for installation on mobile devices"
+        else
+          echo "❌ Vue.js PWA deployment failed. Check the logs above for details."
+        fi
