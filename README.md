@@ -88,11 +88,13 @@ cd your-project && ./start.sh     # Start your project
 
 ### Prerequisites
 
+⚠️ **System Requirements**: This environment is designed for **Linux systems only** (Ubuntu/Debian distributions) as it uses `sudo apt` for package management.
+
+- **Operating System**: Ubuntu 18.04+ / Debian 10+ / Linux Mint 19+
 - **Docker** 20.10+
 - **Docker Compose** 2.0+
 - **Git** (for cloning)
-
-### Installation
+- **Internet connection** (for downloading packages and Docker images)### Installation
 
 ```bash
 # Clone the repository
