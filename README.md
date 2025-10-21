@@ -8,355 +8,264 @@
 [![Node.js](https://img.shields.io/badge/Node.js-18+-green)](https://nodejs.org/)
 [![Flutter](https://img.shields.io/badge/Flutter-3.0+-blue)](https://flutter.dev/)
 
-**Professional multi-technology Docker development environment for modern teams**
+**Professional multi-technology Docker development environment**
 *Streamline your development workflow with containerized perfection*
 
-[🌐 Visit Our Website](https://quocnho.com) | [📚 Documentation](./docs/) | [🐛 Report Issues](../../issues) | [💡 Request Features](../../issues/new)
+[📚 Documentation](./docs/README.md) | [🚀 Quick Start](#-quick-start) | [🐛 Report Issues](../../issues) | [💡 Features](#-features)
 
 </div>
 
 ---
 
-## ⚡ **Development Workflow Made Simple**
+## ⚡ **Quick Start**
 
-### 🚀 **Initial Setup** (One-time, 5 minutes)
-
-```bash
-git clone [repo] && cd docker-environment
-./scripts/check-requirements.sh    # Auto-installs Docker if needed
-./scripts/setup.sh                 # Interactive project setup
-```
-
-### 📅 **Monthly Maintenance** (2 minutes)
+Get your development environment running in 3 simple steps:
 
 ```bash
-docker system prune -f            # Clean unused containers/images
-./scripts/check-requirements.sh   # Update system dependencies
-```
-
-### 🏃‍♂️ **Daily Development** (10 seconds)
-
-```bash
-cd your-project && ./start.sh     # Start your project
-# Code, test, commit...
-./stop.sh                         # Stop when done
-```
-
-**Result**: Multi-technology projects (PHP/Laravel, Flutter, Vue.js) running in isolated containers with zero configuration conflicts! 🎯
-
----
-
-## 🌟 *Why choose Docker for FullStack Environment?*
-
-*At QUOCNHO Team, we faced constant challenges managing multiple client projects across different technology stacks - PHP/Laravel for web applications, Flutter for mobile apps, Vue.js for PWAs, and Node.js for APIs. Each project required different setups, conflicting dependencies, and hours of environment configuration for every team member. We lost countless hours troubleshooting "works on my machine" issues instead of focusing on actual development.*
-
-*That's why we created this battle-tested, production-ready Docker environment - to eliminate setup friction and let teams focus on building amazing applications, not fighting with configurations.*
-
-### ✨ **Key Features**
-
-🔧 **Multi-Technology Support**
-
-- **PHP** (8.1, 8.2, 8.3, 8.4) with Apache/Nginx
-- **Node.js** 18+ for modern JavaScript development
-- **Flutter** SDK with Android development tools
-- **Vue.js/PWA** with Vite hot-reload support
-
-🐳 **Intelligent Container Management**
-
-- Project-specific isolated environments
-- Dynamic container naming prevents conflicts
-- Selective service starting (only what you need)
-- Automatic dependency management
-
-⚡ **Developer Experience**
-
-- **One-command setup**: `./scripts/setup.sh`
-- Interactive project selection menu
-- Hot-reload for all supported technologies
-- Comprehensive logging and debugging tools
-
-🛡️ **Production-Ready**
-
-- Health checks for all services
-- Persistent data volumes
-- Environment-specific configurations
-- CI/CD ready with GitHub Actions templates
-
----
-
-## 🚀 Quick Start
-
-### Prerequisites
-
-⚠️ **System Requirements**: This environment is designed for **Linux systems only** (Ubuntu/Debian distributions) as it uses `sudo apt` for package management.
-
-- **Operating System**: Ubuntu 18.04+ / Debian 10+ / Linux Mint 19+
-- **Docker** 20.10+
-- **Docker Compose** 2.0+
-- **Git** (for cloning)
-- **Internet connection** (for downloading packages and Docker images)### Installation
-
-```bash
-# Clone the repository
+# 1. Clone the repository
 git clone https://github.com/quocnho/docker4fullstack.git
 cd docker4fullstack
 
-# Run automated setup (installs Docker if needed)
-./scripts/check-requirements.sh
-
-# Create your first project
+# 2. Run the interactive setup
 ./scripts/setup.sh
+
+# 3. Start your development environment
+./scripts/start.sh
 ```
 
-**That's it!** 🎉 Your development environment is ready in under 5 minutes.
+**That's it!** Your containerized development environment is ready! 🎉
 
 ---
 
-## 🏗️ Supported Project Types
+## ✨ **Features**
 
-<table>
-<tr>
-<td align="center">
-<img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="120" alt="Laravel">
-<br><strong>Laravel</strong>
-<br>PHP 8.1-8.4, MySQL, Redis
-</td>
-<td align="center">
-<img src="https://storage.googleapis.com/cms-storage-bucket/ec64036b4eacc9f3fd73.svg" width="120" alt="Flutter">
-<br><strong>Flutter</strong>
-<br>Mobile & Web, Hot-reload
-</td>
-<td align="center">
-<img src="https://vitejs.dev/logo.svg" width="120" alt="Vue.js">
-<br><strong>Vue.js PWA</strong>
-<br>Vite, TypeScript, PWA
-</td>
-</tr>
-<tr>
-<td align="center">
-<img src="https://symfony.com/logos/symfony_black_03.svg" width="120" alt="Symfony">
-<br><strong>Symfony</strong>
-<br>PHP Framework, Doctrine
-</td>
-<td align="center">
-<img src="https://codeigniter.com/assets/images/codeigniter4logo.png" width="120" alt="CodeIgniter">
-<br><strong>CodeIgniter</strong>
-<br>Lightweight PHP, MVC
-</td>
-<td align="center">
-<img src="https://nodejs.org/static/images/logo.svg" width="120" alt="Node.js">
-<br><strong>Node.js</strong>
-<br>Express, APIs, Microservices
-</td>
-</tr>
-</table>
+### 🔧 **Multi-Technology Support**
+- **PHP** (8.1-8.4) with Laravel, CodeIgniter, Symfony
+- **Node.js** 18+ for Vue.js, React, Angular development
+- **Flutter** for cross-platform mobile development
+- **Database** MySQL 8.0 + Redis caching
+- **Web Server** Apache/Nginx with SSL support
+
+### 🚀 **Professional Deployment**
+- **GitHub Actions** integration for VPS deployment
+- **Automatic backups** before each deployment
+- **Zero-downtime** deployments with health checks
+- **Virtualmin** compatible directory structure
+- **SSL certificates** automatic management
+
+### 👥 **Team Collaboration**
+- **Interactive setup** with technology selection
+- **Project isolation** - multiple projects simultaneously
+- **Consistent environments** across all team members
+- **Hot reload** and live debugging capabilities
+- **Easy project switching** and management
+
+### 🛠️ **Developer Experience**
+- **VS Code** integration with Xdebug ready
+- **Port conflict prevention** automatic detection
+- **Requirements checking** automatic validation
+- **One-command** start/stop/restart operations
+- **Comprehensive logging** and monitoring
 
 ---
 
-## 📋 What You Get
+## 🎯 **Use Cases**
 
-### 🛠️ **Development Tools**
+Perfect for:
 
-- **Web Server**: Apache/Nginx with SSL support
-- **Database**: MySQL 8.0 with phpMyAdmin
-- **Caching**: Redis for session & data caching
-- **Debugging**: Xdebug configured for VS Code
-- **Process Manager**: PM2 for Node.js applications
-
-### 🔐 **Production Features**
-
-- Environment-specific configurations
-- Container health monitoring
-- Automated backup scripts
-- Security best practices implemented
-- Resource usage optimization
-
-### 📊 **Project Management**
-
-- Multi-project support (no port conflicts!)
-- Project-specific `.denv` configuration files
-- Interactive setup wizard
-- One-command start/stop/restart
-- Container status monitoring
+- 🏢 **Development Agencies** - Multiple client projects with different tech stacks
+- 👥 **Team Development** - Consistent environments across team members
+- 🚀 **Rapid Prototyping** - Quick project setup with pre-configured templates
+- 📱 **Full-Stack Development** - Backend, frontend, and mobile in one environment
+- 🌐 **Production Deployment** - Professional VPS deployment workflows
 
 ---
 
-## 🎯 Perfect For
+## 🛠️ **Technology Stack**
 
-✅ **Development Teams** - Consistent environments across all machines
-✅ **Freelancers** - Quick project setup for client work
-✅ **Students** - Learn modern development practices
-✅ **Agencies** - Manage multiple client projects efficiently
-✅ **Startups** - Scale from MVP to production seamlessly
+| Technology | Version | Purpose |
+|------------|---------|---------|
+| **Docker** | 20.10+ | Containerization platform |
+| **PHP** | 8.1-8.4 | Backend development |
+| **Node.js** | 18+ | Frontend development |
+| **Flutter** | 3.0+ | Mobile development |
+| **MySQL** | 8.0 | Primary database |
+| **Redis** | Latest | Caching and sessions |
+| **Apache/Nginx** | Latest | Web server |
 
 ---
 
-## 🏃‍♂️ Usage Examples
+## 📊 **Project Structure**
 
-### Start a Laravel Project
+```
+Docker4FullStack/
+├── 📁 containers/              # Docker configurations
+│   ├── docker-compose.yml     # Multi-service orchestration
+│   ├── Dockerfile              # PHP/Apache environment
+│   └── Dockerfile.flutter      # Flutter development
+├── 📁 configs/                 # Service configurations
+│   ├── php/                    # PHP & Xdebug settings
+│   ├── nodejs/                 # Node.js configuration
+│   ├── flutter/                # Flutter development setup
+│   └── nginx/                  # Web server configuration
+├── 📁 scripts/                 # Management scripts
+│   ├── setup.sh                # Interactive project setup
+│   ├── start.sh                # Start development environment
+│   ├── stop.sh                 # Stop all containers
+│   └── container-helper.sh     # Container utilities
+├── 📁 templates/               # Project templates
+│   ├── laravel/                # Laravel starter template
+│   ├── vue-pwa/                # Vue.js PWA template
+│   ├── flutter/                # Flutter app template
+│   └── github-actions/         # VPS deployment workflows
+└── 📁 docs/                    # Comprehensive documentation
+    ├── README.md               # Detailed documentation
+    ├── DEPLOYMENT_GUIDE.md     # VPS deployment guide
+    └── MULTI_PROJECT_GUIDE.md  # Multi-project management
+```
 
+---
+
+## 🚀 **Development Workflow**
+
+### 1. **Project Setup**
 ```bash
-# Interactive project setup
+# Interactive menu for project selection
 ./scripts/setup.sh
 
-# Select "Laravel" → Choose PHP 8.3 → MySQL + Redis
-# Your project starts at http://localhost:8080
+# Choose from existing projects or create new
+# Select technology stack (PHP, Node.js, Flutter)
+# Configure GitHub Actions for VPS deployment
 ```
 
-### Develop Flutter App
-
+### 2. **Daily Development**
 ```bash
-# Create Flutter project
-./scripts/setup.sh
+# Start your development environment
+./scripts/start.sh
 
-# Select "Flutter" → Enable hot-reload
-# Access at http://localhost:5000
+# Your applications are available at:
+# - Main app: http://project-name.dev
+# - phpMyAdmin: http://localhost:8081
+# - Node.js app: http://localhost:3000
 ```
 
-### Build Vue.js PWA
-
+### 3. **Container Management**
 ```bash
-# PWA-ready setup
-./scripts/setup.sh
+# Check container status
+./scripts/container-helper.sh status
 
-# Select "Vue.js PWA" → Vite dev server
-# Development at http://localhost:5173
+# Enter containers for debugging
+./scripts/container-helper.sh exec web bash
+./scripts/container-helper.sh exec nodejs npm install
+
+# View logs
+./scripts/container-helper.sh logs web 50
+```
+
+### 4. **Deployment**
+```bash
+# Push to main branch triggers automatic deployment
+git push origin main
+
+# GitHub Actions handles:
+# ✅ Testing and building
+# ✅ VPS deployment with backup
+# ✅ Health checks and verification
 ```
 
 ---
 
-## 📚 Documentation
+## 🎯 **Benefits**
 
-- [📖 **Complete Guide**](./docs/README.md) - Detailed setup instructions
-- [🔧 **Configuration**](./docs/MULTI_PROJECT_GUIDE.md) - Customize your environment
-- [🚀 **Deployment**](./templates/github-actions/) - VPS deployment with Virtualmin
-- [❓ **FAQ**](./docs/FAQ.md) - Common questions answered
-- [🛠️ **Troubleshooting**](./scripts/check-requirements.sh) - System validation tool
+### ✅ **For Developers**
+- **Zero setup time** - Works instantly on any machine
+- **No conflicts** - Isolated environments for each project
+- **Professional tools** - Xdebug, hot reload, live debugging
+- **Multi-technology** - PHP, Node.js, Flutter in one environment
+
+### ✅ **For Teams**
+- **Consistency** - Identical environments for all team members
+- **Collaboration** - Easy project sharing and onboarding
+- **Standards** - Enforced coding standards and best practices
+- **Scalability** - Support for multiple simultaneous projects
+
+### ✅ **For Production**
+- **Automated deployment** - GitHub Actions VPS integration
+- **Safety** - Automatic backups and health checks
+- **Performance** - Optimized container configurations
+- **Monitoring** - Comprehensive logging and error tracking
 
 ---
 
-## 🌟 Community & Support
+## 🔧 **Requirements**
+
+- **Docker** 20.10 or higher
+- **Docker Compose** 2.0 or higher
+- **Git** for version control
+- **4GB RAM** minimum (8GB recommended)
+- **10GB** free disk space
+
+**Automatic validation:** Run `./scripts/check-requirements.sh` to verify your system.
+
+---
+
+## 📚 **Documentation**
+
+- 📖 **[Complete Documentation](./docs/README.md)** - Comprehensive guide
+- 🚀 **[Deployment Guide](./docs/DEPLOYMENT_GUIDE.md)** - VPS deployment
+- 🔀 **[Multi-Project Guide](./docs/MULTI_PROJECT_GUIDE.md)** - Managing multiple projects
+- ⚙️ **[Configuration Guide](./configs/README.md)** - Customization options
+
+---
+
+## 🤝 **Contributing**
+
+We welcome contributions from the community! Please see our [Contributing Guide](./CONTRIBUTING.md) for details.
+
+### 📋 **How to Contribute**
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+---
+
+## 📄 **License**
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 🌟 **Support the Project**
+
+If this project helps you and your team, please consider giving it a ⭐ on GitHub!
+
+*Building and maintaining this Docker environment takes time and effort. Community support helps continue improving and adding new features!*
+
+[![GitHub Sponsors](https://img.shields.io/badge/GitHub-Sponsors-red?style=for-the-badge&logo=github)](https://github.com/sponsors)
+
+**Every contribution, no matter how small, is greatly appreciated!** 🙏
+
+---
+
+## 🙋‍♂️ **About the Project**
 
 <div align="center">
 
-**Love this project? Here's how you can support it:**
+**Created with ❤️ by the Docker for FullStack Community**
 
-### ☕ **Buy Me a Coffee**
-
-*Building and maintaining this Docker environment takes time and effort. Your support helps me continue improving and adding new features!*
-
-[![PayPal](https://img.shields.io/badge/PayPal-Donate-blue?style=for-the-badge&logo=paypal)](https://paypal.me/quocnho)
-
-**Every donation, no matter how small, is greatly appreciated!** 🙏
-
-*Tặng tôi ly cà phê để tiếp tục phát triển những công cụ hữu ích cho cộng đồng developer!*
-
----
-
-### 🤝 **Other Ways to Support**
-
-- ⭐ **Star this repository** - Show your appreciation
-- 🐛 **Report bugs** - Help us improve
-- 💡 **Suggest features** - Share your ideas
-- 📢 **Share with friends** - Spread the word
-- 📝 **Write a review** - Help others discover this project
-
-</div>
-
----
-
-## 🏆 Why Developers Choose Us
-
-> *"This Docker environment saved our team weeks of setup time. We went from project idea to running code in minutes!"*
-> **— Sarah Chen, Lead Developer**
-
-> *"Finally, a Docker setup that actually works out of the box. No more dependency hell!"*
-> **— Miguel Rodriguez, Full-Stack Developer**
-
-> *"The multi-project support is a game-changer. We can run 5 different client projects simultaneously without conflicts."*
-> **— Alex Thompson, Freelance Developer**
-
----
-
-## 🛣️ Roadmap
-
-### 🎯 **Coming Soon**
-
-- [ ] **Kubernetes** deployment templates
-- [ ] **Python/Django** support
-- [ ] **Ruby on Rails** environment
-- [ ] **PostgreSQL** database option
-- [ ] **Redis Cluster** configuration
-- [ ] **Elasticsearch** integration
-- [ ] **Monitoring Dashboard** (Grafana + Prometheus)
-
-### 🚀 **Future Plans**
-
-- [ ] **Cloud deployment** automation (AWS, Digital Ocean)
-- [ ] **Development VS Code Extension**
-- [ ] **Mobile app** for container management
-- [ ] **AI-powered** optimization suggestions
-
----
-
-## 📂 Project Structure
-
-```
-QUOCNHO-Docker/
-├── 📁 containers/          # Docker definitions
-│   ├── docker-compose.yml  # Multi-service orchestration
-│   ├── Dockerfile          # PHP/Apache environment
-│   └── Dockerfile.flutter  # Flutter development
-├── 📁 configs/             # Service configurations
-│   ├── php/                # PHP & Xdebug settings
-│   ├── mysql/              # Database optimization
-│   ├── nginx/              # Web server configs
-│   └── redis/              # Cache configuration
-├── 📁 scripts/             # Automation tools
-│   ├── setup.sh            # Interactive project setup
-│   ├── check-requirements.sh # System validation
-│   └── container-helper.sh # Container management
-├── 📁 templates/           # Project templates
-│   ├── laravel/            # Laravel boilerplate
-│   ├── flutter/            # Flutter starter
-│   ├── vue-pwa/            # Vue.js PWA template
-│   └── github-actions/     # CI/CD workflows
-└── 📁 docs/                # Documentation
-```
-
----
-
-## 📜 License
-
-This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
-
----
-
-## 🙋‍♂️ About the Author
-
-<div align="center">
-
-**Created with ❤️ by QUOCNHO Team**
-
-[![Website](https://img.shields.io/badge/Website-quocnho.com-blue?style=flat-square)](https://quocnho.com)
-[![Email](https://img.shields.io/badge/Email-quocnho@gmail.com-red?style=flat-square)](mailto:quocnho@gmail.com)
+[![GitHub](https://img.shields.io/badge/GitHub-Repository-blue?style=flat-square&logo=github)](https://github.com/docker4fullstack)
+[![Contributions](https://img.shields.io/badge/Contributions-Welcome-green?style=flat-square)](./CONTRIBUTING.md)
 
 *Building developer tools that make coding enjoyable again*
 
----
-
-### 🎯 **Our Mission**
-
-To eliminate the complexity of development environment setup and let developers focus on what they do best: **building amazing applications**.
-
----
-
-**⭐ If this project helped you, please consider giving it a star! ⭐**
-
 </div>
 
 ---
 
-<div align="center">
-<sub>Made with 💖 for the developer community</sub>
-</div>
+**Ready to revolutionize your development workflow?** Get started now! 🚀
+
+```bash
+git clone https://github.com/quocnho/docker4fullstack.git && cd docker4fullstack && ./scripts/setup.sh
+```

@@ -1,6 +1,6 @@
 ## Quick context
 
-This repo contains a standardized Docker-based development environment for the QUOCNHO team's multi-technology projects (PHP/Laravel/CodeIgniter/Symfony, Flutter, Vue.js/PWA, Node.js). It provides reusable Docker Compose definitions, configuration templates and automation scripts to ensure consistent team development environments across all machines. The stack is modular and supports: PHP (multiple versions), Node.js, MySQL, Redis, nginx, Flutter development tools, and PWA build tools.
+This repo contains a standardized Docker-based development environment for multi-technology projects (PHP/Laravel/CodeIgniter/Symfony, Flutter, Vue.js/PWA, Node.js). It provides reusable Docker Compose definitions, configuration templates and automation scripts to ensure consistent team development environments across all machines. The stack is modular and supports: PHP (multiple versions), Node.js, MySQL, Redis, nginx, Flutter development tools, and PWA build tools.
 
 Key directories and files you should read before editing code:
 
@@ -16,7 +16,7 @@ Key directories and files you should read before editing code:
 - **Multi-technology support**: Modular container system supporting PHP (8.1-8.4), Node.js, Flutter, Vue.js/PWA development with selective container installation based on project needs.
 - **Project-centric workflow**: Each project in `../Projects/` directory has its own `.denv` file storing container selections, PHP version, ports, and environment variables.
 - **Interactive setup**: `setup.sh` provides project selection menu (existing projects or create new), technology stack selection, and automatic `.denv` generation/reading.
-- **Team consistency**: Standardized container definitions in `containers/` with technology-specific configurations, ensuring identical development environments across QUOCNHO team members.
+- **Team consistency**: Standardized container definitions in `containers/` with technology-specific configurations, ensuring identical development environments across team members.
 - **Agile/Scrum integration**: Built-in support for GitHub Actions CI/CD workflows and deployment configurations for VPS/hosting environments.
 - **Dynamic naming**: Container/network/volume names use `${PROJECT_NAME}` from `.denv` to allow multiple team projects running simultaneously without conflicts.
 

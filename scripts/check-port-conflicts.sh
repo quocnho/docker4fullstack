@@ -1,5 +1,5 @@
 #!/bin/bash
-# QUOCNHO Team - Port & Container Conflict Checker
+# Docker for FullStack - Port & Container Conflict Checker
 # This script checks for port conflicts and container/network naming conflicts
 
 # Colors for output

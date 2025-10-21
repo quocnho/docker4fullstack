@@ -1,4 +1,4 @@
-# Vue.js/PWA Project Template - QUOCNHO Team
+# Vue.js/PWA Project Template - Docker for FullStack
 
 This directory contains a template for Vue.js and Progressive Web App projects.
 

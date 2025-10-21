@@ -1,6 +1,6 @@
-# 📚 QUOCNHO Docker Development Environment
+# 📚 Docker for FullStack Environment
 
-Comprehensive documentation for the QUOCNHO team's multi-technology Docker development environment. This system provides standardized containerized development environments for PHP/Laravel/CodeIgniter/Symfony, Flutter, Vue.js/PWA, and Node.js projects.
+Comprehensive documentation for the Docker for FullStack multi-technology development environment. This system provides standardized containerized development environments for PHP/Laravel/CodeIgniter/Symfony, Flutter, Vue.js/PWA, and Node.js projects.
 
 ## 🎯 Overview
 
@@ -99,7 +99,7 @@ cd Docker
 The setup script provides an interactive menu:
 
 ```
-🐳 QUOCNHO Docker Environment Setup
+🐳 Docker for FullStack Environment Setup
 
 Select Project:
   0) ➕ Create new project

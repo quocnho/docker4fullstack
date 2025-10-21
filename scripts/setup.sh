@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# QUOCNHO Team - Interactive Docker Environment Setup
+# Docker for FullStack - Interactive Docker Environment Setup
 # This script provides project selection and technology stack configuration
 
 set -e
@@ -23,7 +23,7 @@ NC='\033[0m' # No Color
 print_header() {
     echo -e "${BLUE}${BOLD}"
     echo "=================================================================="
-    echo "🚀 QUOCNHO TEAM - DOCKER ENVIRONMENT SETUP"
+    echo "🚀 DOCKER FOR FULLSTACK - ENVIRONMENT SETUP"
     echo "=================================================================="
     echo -e "${NC}"
 }
@@ -439,7 +439,7 @@ generate_denv_file() {
     print_info "Generating .denv configuration file..."
 
     cat > "$denv_file" << EOF
-# QUOCNHO Team - Project Environment Configuration
+# Docker for FullStack - Project Environment Configuration
 # Generated on $(date)
 
 # === Project Information ===
@@ -592,7 +592,7 @@ copy_flutter_template() {
         # Create basic pubspec.yaml
         cat > "$SELECTED_PROJECT_PATH/pubspec.yaml" << EOF
 name: $SELECTED_PROJECT
-description: QUOCNHO Team Flutter project
+description: Docker for FullStack Flutter project
 
 version: 1.0.0+1
 
@@ -661,7 +661,7 @@ copy_php_template() {
     cat > "$SELECTED_PROJECT_PATH/README.md" << EOF
 # $SELECTED_PROJECT - $TECH_STACK Application
 
-QUOCNHO Team $TECH_STACK project created on $(date).
+Docker for FullStack $TECH_STACK project created on $(date).
 
 ## 🚀 Quick Start
 
@@ -869,7 +869,7 @@ display_access_info() {
     echo -e "${BLUE}• Configuration:${NC} $SELECTED_PROJECT_PATH/.denv"
     echo -e "${BLUE}• Docker compose:${NC} $DOCKER_ROOT/containers/docker-compose.yml"
 
-    echo -e "\n${GREEN}Happy coding with QUOCNHO Team! 🚀${NC}"
+    echo -e "\n${GREEN}Happy coding with Docker for FullStack! 🚀${NC}"
 }
 
 # Main execution

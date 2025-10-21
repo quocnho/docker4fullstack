@@ -1,4 +1,4 @@
-# Laravel Project Template - QUOCNHO Team
+# Laravel Project Template - Docker for FullStack
 
 This directory contains a template for Laravel projects.
 

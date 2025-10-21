@@ -1,4 +1,4 @@
-# Flutter Project Template - QUOCNHO Team
+# Flutter Project Template - Docker for FullStack
 
 This directory contains a template for Flutter projects.
 

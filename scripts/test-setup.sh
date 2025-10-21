@@ -1,5 +1,5 @@
 #!/bin/bash
-# Test script for QUOCNHO Team Docker Environment
+# Test script for Docker for FullStack Environment
 
 set -e
 
@@ -34,7 +34,7 @@ PROJECTS_DIR="/home/quocnho/Development/Projects"
 TEST_PROJECT_PATH="$PROJECTS_DIR/$TEST_PROJECT_NAME"
 
 echo "=================================================================="
-echo "🧪 QUOCNHO Team Docker Environment - Automated Test"
+echo "🧪 Docker for FullStack Environment - Automated Test"
 echo "=================================================================="
 
 # Cleanup any existing test project
@@ -50,7 +50,7 @@ mkdir -p "$TEST_PROJECT_PATH"
 # Create .denv file
 print_info "Creating .denv configuration..."
 cat > "$TEST_PROJECT_PATH/.denv" << EOF
-# QUOCNHO Team - Project Environment Configuration
+# Docker for FullStack - Project Environment Configuration
 # Generated for testing
 
 # === Project Information ===

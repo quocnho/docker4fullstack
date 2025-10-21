@@ -1,5 +1,5 @@
 #!/bin/bash
-# QUOCNHO Team - System Requirements Checker
+# Docker for FullStack - System Requirements Checker
 # Validates and installs Docker, Node.js, Flutter SDK and other required tools
 
 # Colors for output
@@ -18,7 +18,7 @@ cd "$SCRIPT_DIR/../.."
 print_header() {
     echo -e "${BLUE}${BOLD}"
     echo "=================================================================="
-    echo "🔍 QUOCNHO TEAM - SYSTEM REQUIREMENTS CHECKER"
+    echo "🔍 DOCKER FOR FULLSTACK - SYSTEM REQUIREMENTS CHECKER"
     echo "=================================================================="
     echo -e "${NC}"
 }
