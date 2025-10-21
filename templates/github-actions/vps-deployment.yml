@@ -33,7 +33,7 @@ jobs:
       env:
         VPS_HOST: ${{ secrets.VPS_HOST }}
         VPS_USER: ${{ secrets.VPS_USER }}
-        VPS_PATH: ${{ secrets.VPS_PATH }}
+        PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
         DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}
       run: |
         # Create deployment script
@@ -44,10 +44,8 @@ jobs:
         echo "🚀 Starting deployment to VPS..."
 
         # Project variables
-        PROJECT_PATH="${VPS_PATH}"
-        BACKUP_DIR="${PROJECT_PATH}/backups"
-
-        # Create backup directory if not exists
+        PROJECT_PATH="/home/${PROJECT_NAME}"
+        BACKUP_DIR="${PROJECT_PATH}/backups"        # Create backup directory if not exists
         mkdir -p "$BACKUP_DIR"
 
         # Create backup of current deployment
@@ -90,11 +88,11 @@ jobs:
           --exclude='vendor' \
           --exclude='.env' \
           --exclude='*.log' \
-          ./ $VPS_USER@$VPS_HOST:$VPS_PATH/public_html/
+          ./ $VPS_USER@$VPS_HOST:/home/$PROJECT_NAME/public_html/
 
         # Set final permissions
         ssh $VPS_USER@$VPS_HOST "
-          cd $VPS_PATH/public_html
+          cd /home/$PROJECT_NAME/public_html
 
           # Set ownership to domain user (Virtualmin standard)
           chown -R $VPS_USER:$VPS_USER .
@@ -109,16 +107,14 @@ jobs:
           find . -name '*.sh' -exec chmod +x {} \;
 
           echo '✅ File permissions updated'
-        "
-
-    - name: Post-deployment tasks
+        "    - name: Post-deployment tasks
       env:
         VPS_HOST: ${{ secrets.VPS_HOST }}
         VPS_USER: ${{ secrets.VPS_USER }}
-        VPS_PATH: ${{ secrets.VPS_PATH }}
+        PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
       run: |
         ssh $VPS_USER@$VPS_HOST "
-          cd $VPS_PATH/public_html
+          cd /home/$PROJECT_NAME/public_html
 
           # Create .htaccess if it doesn't exist
           if [ ! -f .htaccess ]; then

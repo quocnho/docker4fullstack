@@ -47,12 +47,12 @@ Copy the appropriate `.yml` file to your project's `.github/workflows/` director
 ### 2. Configure Repository Secrets
 In your GitHub repository, go to **Settings > Secrets and variables > Actions** and add:
 
-#### Required Secrets (All Templates):
-```
+#### Required Secrets (All Templates)
+```bash
 VPS_SSH_KEY     # Private SSH key for VPS access
 VPS_HOST        # VPS IP address or hostname
-VPS_USER        # VPS username (domain user in Virtualmin)
-VPS_PATH        # Path to domain directory (e.g., /home/username/domains/example.com)
+VPS_USER        # VPS username (same as project name)
+PROJECT_NAME    # Project name (will be used as directory: /home/{PROJECT_NAME}/public_html)
 DOMAIN_NAME     # Your domain name (e.g., example.com)
 ```
 
@@ -66,14 +66,23 @@ APP_KEY         # Laravel application key
 APP_URL         # Full application URL (https://example.com)
 ```
 
-### 3. Virtualmin Directory Structure
-Your Virtualmin domain should have this structure:
+### 3. VPS Directory Structure
+
+Your VPS should have this structure:
+
 ```
-/home/username/domains/example.com/
+/home/{PROJECT_NAME}/
 ├── public_html/          # Web root (where files are served)
-├── logs/                 # Domain logs
 ├── backups/              # Deployment backups (auto-created)
 └── laravel-app/          # Laravel app (Laravel only)
+```
+
+**Example for project named "mystore":**
+```
+/home/mystore/
+├── public_html/          # Accessible via domain
+├── backups/              # Auto-generated backups
+└── laravel-app/          # Laravel source (if using Laravel)
 ```
 
 ### 4. SSH Key Setup
@@ -96,10 +105,11 @@ Copy the private key content to `VPS_SSH_KEY` secret.
 ## 🔧 Customization
 
 ### Modify Deployment Paths
-Edit the `VPS_PATH` in your workflow or secrets to match your Virtualmin setup:
+Edit the `PROJECT_NAME` in your workflow or secrets to match your VPS setup:
+
 ```yaml
 env:
-  VPS_PATH: /home/yourusername/domains/yourdomain.com
+  PROJECT_NAME: youprojectname  # Will create /home/yourprojectname/public_html
 ```
 
 ### Add Environment Variables

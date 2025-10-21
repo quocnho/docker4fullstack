@@ -76,7 +76,7 @@ jobs:
       env:
         VPS_HOST: ${{ secrets.VPS_HOST }}
         VPS_USER: ${{ secrets.VPS_USER }}
-        VPS_PATH: ${{ secrets.VPS_PATH }}
+        PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
         DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}
       run: |
         # Create Flutter web deployment script
@@ -87,10 +87,8 @@ jobs:
         echo "🚀 Starting Flutter Web deployment to VPS..."
 
         # Project variables
-        PROJECT_PATH="${VPS_PATH}"
-        BACKUP_DIR="${PROJECT_PATH}/backups"
-
-        # Create directories
+        PROJECT_PATH="/home/${PROJECT_NAME}"
+        BACKUP_DIR="${PROJECT_PATH}/backups"        # Create directories
         mkdir -p "$BACKUP_DIR"
         mkdir -p "$PROJECT_PATH/public_html"
 
@@ -119,17 +117,17 @@ jobs:
         # Sync Flutter web build to VPS
         echo "📁 Syncing Flutter Web files to VPS..."
         rsync -avz --delete \
-          ./build/web/ $VPS_USER@$VPS_HOST:$VPS_PATH/public_html/
+          ./build/web/ $VPS_USER@$VPS_HOST:/home/$PROJECT_NAME/public_html/
 
     - name: Configure Flutter Web on VPS
       env:
         VPS_HOST: ${{ secrets.VPS_HOST }}
         VPS_USER: ${{ secrets.VPS_USER }}
-        VPS_PATH: ${{ secrets.VPS_PATH }}
+        PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
         DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}
       run: |
         ssh $VPS_USER@$VPS_HOST "
-          cd $VPS_PATH/public_html
+          cd /home/$PROJECT_NAME/public_html
 
           # Create Flutter Web .htaccess
           cat > .htaccess << 'HTACCESS'
@@ -222,8 +220,8 @@ AddType application/manifest+json .webmanifest .json
 HTACCESS
 
           # Set proper permissions
-          chown -R $VPS_USER:$VPS_USER $VPS_PATH
-          chmod -R 755 $VPS_PATH/public_html
+          chown -R $VPS_USER:$VPS_USER /home/$PROJECT_NAME
+          chmod -R 755 /home/$PROJECT_NAME/public_html
 
           echo '✅ Flutter Web configuration completed'
         "
@@ -232,11 +230,11 @@ HTACCESS
       env:
         VPS_HOST: ${{ secrets.VPS_HOST }}
         VPS_USER: ${{ secrets.VPS_USER }}
-        VPS_PATH: ${{ secrets.VPS_PATH }}
+        PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
         DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}
       run: |
         ssh $VPS_USER@$VPS_HOST "
-          cd $VPS_PATH/public_html
+          cd /home/$PROJECT_NAME/public_html
 
           # Check if main Flutter files exist
           if [ -f 'index.html' ]; then

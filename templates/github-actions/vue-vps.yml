@@ -71,7 +71,7 @@ jobs:
       env:
         VPS_HOST: ${{ secrets.VPS_HOST }}
         VPS_USER: ${{ secrets.VPS_USER }}
-        VPS_PATH: ${{ secrets.VPS_PATH }}
+        PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
         DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}
       run: |
         # Create Vue.js deployment script
@@ -82,10 +82,8 @@ jobs:
         echo "🚀 Starting Vue.js PWA deployment to VPS..."
 
         # Project variables
-        PROJECT_PATH="${VPS_PATH}"
-        BACKUP_DIR="${PROJECT_PATH}/backups"
-
-        # Create directories
+        PROJECT_PATH="/home/${PROJECT_NAME}"
+        BACKUP_DIR="${PROJECT_PATH}/backups"        # Create directories
         mkdir -p "$BACKUP_DIR"
         mkdir -p "$PROJECT_PATH/public_html"
 
@@ -114,17 +112,17 @@ jobs:
         # Sync built Vue.js app to VPS
         echo "📁 Syncing Vue.js PWA files to VPS..."
         rsync -avz --delete \
-          ./dist/ $VPS_USER@$VPS_HOST:$VPS_PATH/public_html/
+          ./dist/ $VPS_USER@$VPS_HOST:/home/$PROJECT_NAME/public_html/
 
     - name: Configure Vue.js PWA on VPS
       env:
         VPS_HOST: ${{ secrets.VPS_HOST }}
         VPS_USER: ${{ secrets.VPS_USER }}
-        VPS_PATH: ${{ secrets.VPS_PATH }}
+        PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
         DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}
       run: |
         ssh $VPS_USER@$VPS_HOST "
-          cd $VPS_PATH/public_html
+          cd /home/$PROJECT_NAME/public_html
 
           # Create Vue.js SPA .htaccess
           cat > .htaccess << 'HTACCESS'
@@ -210,8 +208,8 @@ AddType text/cache-manifest .manifest
 HTACCESS
 
           # Set proper permissions
-          chown -R $VPS_USER:$VPS_USER $VPS_PATH
-          chmod -R 755 $VPS_PATH/public_html
+          chown -R $VPS_USER:$VPS_USER /home/$PROJECT_NAME
+          chmod -R 755 /home/$PROJECT_NAME/public_html
 
           echo '✅ Vue.js PWA configuration completed'
         "
@@ -220,11 +218,11 @@ HTACCESS
       env:
         VPS_HOST: ${{ secrets.VPS_HOST }}
         VPS_USER: ${{ secrets.VPS_USER }}
-        VPS_PATH: ${{ secrets.VPS_PATH }}
+        PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
         DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}
       run: |
         ssh $VPS_USER@$VPS_HOST "
-          cd $VPS_PATH/public_html
+          cd /home/$PROJECT_NAME/public_html
 
           # Check if PWA manifest exists
           if [ -f 'manifest.json' ] || [ -f 'manifest.webmanifest' ]; then
