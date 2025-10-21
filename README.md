@@ -281,11 +281,21 @@ If this project helps you and your team, please consider giving it a ⭐ on GitH
 *Building and maintaining this Docker environment takes time and effort. Community support helps continue improving and adding new features!*
 
 [![PayPal](https://img.shields.io/badge/PayPal-Donate-blue?style=for-the-badge&logo=paypal)](https://paypal.me/quocnho)
-[![GitHub Sponsors](https://img.shields.io/badge/GitHub-Sponsors-red?style=for-the-badge&logo=github)](https://github.com/sponsors)
+[![GitHub Sponsors](https://img.shields.io/badge/GitHub-Sponsors-red?style=for-the-badge&logo=github)](https://github.com/sponsors/quocnho)
 
 **Every contribution, no matter how small, is greatly appreciated!** 🙏
 
-*Tặng tôi ly cà phê để tiếp tục phát triển những công cụ hữu ích cho cộng đồng developer!* ☕
+*Buy me a coffee to continue developing useful tools for the developer community!* ☕
+
+<div align="center">
+
+### 🏦 **Bank Transfer - MB Bank (Vietnam)**
+
+<img src="./docs/qrcode_quocnho.jpg" alt="MB Bank QR Code" width="200" />
+
+*Scan QR code for quick bank transfer*
+
+</div>
 
 ---
 
