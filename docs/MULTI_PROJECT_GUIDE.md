@@ -134,7 +134,7 @@ PMA_PORT=8082
 
 ```bash
 # View current networks
-docker network ls | grep docker4fullstack
+docker network ls | grep docker
 
 # Multi-project analysis
 ./scripts/multi-project-check.sh

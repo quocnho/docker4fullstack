@@ -51,7 +51,7 @@ First, organize your workspace with the recommended directory structure:
 ```bash
 # Recommended workspace structure
 ~/Development/
-├── Docker4Fullstack/          # This repository (Docker environment)
+├── Docker/                    # This repository (Docker environment)
 └── Projects/                  # Your development projects
     ├── my-laravel-app/
     ├── restaurant-pos/
@@ -65,12 +65,12 @@ Get your development environment running in 4 simple steps:
 
 ```bash
 # 1. Create workspace structure
-mkdir -p ~/Development/{Docker4Fullstack,Projects}
+mkdir -p ~/Development/{Docker,Projects}
 cd ~/Development
 
 # 2. Clone the repository
-git clone https://github.com/quocnho/docker4fullstack.git Docker4Fullstack
-cd Docker4Fullstack
+git clone https://github.com/quocnho/docker4fullstack.git Docker
+cd Docker
 
 # 3. Run the interactive setup
 ./scripts/setup.sh
@@ -81,7 +81,7 @@ cd Docker4Fullstack
 
 **That's it!** Your containerized development environment is ready! 🎉
 
-> **💡 Important:** The Docker4Fullstack directory must be at the same level as the Projects directory for the scripts to work correctly.
+> **💡 Important:** The Docker directory must be at the same level as the Projects directory for the scripts to work correctly.
 
 ---
 
@@ -153,7 +153,7 @@ Perfect for:
 
 ```
 ~/Development/                  # Your main development workspace
-├── 📁 Docker4FullStack/       # This repository (Docker environment)
+├── 📁 Docker/                 # This repository (Docker environment)
 │   ├── 📁 containers/         # Docker configurations
 │   │   ├── docker-compose.yml # Multi-service orchestration
 │   │   ├── Dockerfile         # PHP/Apache environment
@@ -184,7 +184,7 @@ Perfect for:
     └── 📁 vue-pwa-project/    # Vue.js PWA project
 ```
 
-> **🔧 Setup Requirement:** The Docker4FullStack directory must be placed alongside the Projects directory for proper script functionality and project detection.
+> **🔧 Setup Requirement:** The Docker directory must be placed alongside the Projects directory for proper script functionality and project detection.
 │   ├── flutter/                # Flutter app template
 │   └── github-actions/         # VPS deployment workflows
 └── 📁 docs/                    # Comprehensive documentation
@@ -203,8 +203,8 @@ Perfect for:
 The setup script automatically detects projects in the `../Projects/` directory:
 
 ```bash
-# Navigate to Docker4FullStack directory
-cd ~/Development/Docker4FullStack
+# Navigate to Docker directory
+cd ~/Development/Docker
 
 # Run setup - it will scan ../Projects/ for existing projects
 ./scripts/setup.sh
@@ -361,5 +361,5 @@ If this project helps you and your team, please consider giving it a ⭐ on GitH
 **Ready to revolutionize your development workflow?** Get started now! 🚀
 
 ```bash
-git clone https://github.com/quocnho/docker4fullstack.git && cd docker4fullstack && ./scripts/setup.sh
+git clone https://github.com/quocnho/docker4fullstack.git Docker && cd Docker && ./scripts/setup.sh
 ```
