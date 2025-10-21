@@ -1,0 +1,38 @@
+# QUOCNHO Team - Project Environment Configuration
+# This file contains project-specific Docker environment settings
+
+# === Project Information ===
+PROJECT_NAME=my-project
+CONTAINERS=web,mysql,redis,nodejs
+PHP_VERSION=8.3
+NODE_VERSION=18
+WEB_SERVER=apache
+
+# === Port Configuration ===
+WEB_PORT=8080
+DB_PORT=3306
+REDIS_PORT=6379
+NODE_PORT=3000
+NGINX_PORT=8081
+PMA_PORT=8082
+
+# === Database Configuration ===
+DB_NAME=my_project_db
+DB_USER=developer
+DB_PASS=dev123
+MYSQL_ROOT_PASSWORD=root123
+
+# === Technology Stack ===
+TECH_STACK=laravel
+DEPLOYMENT_TARGET=vps
+GITHUB_ACTIONS=enabled
+
+# === Development Environment ===
+APP_ENV=development
+DEBUG=true
+XDEBUG=enabled
+
+# === Container Resource Limits ===
+PHP_MEMORY_LIMIT=512M
+MYSQL_MEMORY_LIMIT=1G
+REDIS_MEMORY_LIMIT=256M
