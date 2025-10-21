@@ -7,7 +7,7 @@ set -e
 
 # Change to script directory and navigate to project root
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cd "$SCRIPT_DIR/../.."
+cd "$SCRIPT_DIR/.."
 DOCKER_ROOT=$(pwd)
 PROJECTS_DIR="../Projects"
 
@@ -156,7 +156,7 @@ list_projects() {
     local projects=()
 
     if [ -d "$PROJECTS_DIR" ]; then
-        for dir in "$PROJECTS_DIR"*/; do
+        for dir in "$PROJECTS_DIR"/*/; do
             if [ -d "$dir" ]; then
                 local project_name=$(basename "$dir")
                 local tech_info=""
