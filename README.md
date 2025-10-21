@@ -92,8 +92,8 @@ cd your-project && ./start.sh     # Start your project
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/docker-environment.git
-cd docker-environment
+git clone https://github.com/quocnho/docker4fullstack.git
+cd docker4fullstack
 
 # Run automated setup (installs Docker if needed)
 ./scripts/check-requirements.sh
