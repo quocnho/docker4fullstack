@@ -73,10 +73,10 @@ git clone https://github.com/quocnho/docker4fullstack.git Docker
 cd Docker
 
 # 3. Run the interactive setup
-./scripts/setup.sh
+./setup.sh
 
 # 4. Start your development environment
-./scripts/start.sh
+./start.sh
 ```
 
 **That's it!** Your containerized development environment is ready! 🎉
@@ -207,7 +207,7 @@ The setup script automatically detects projects in the `../Projects/` directory:
 cd ~/Development/Docker
 
 # Run setup - it will scan ../Projects/ for existing projects
-./scripts/setup.sh
+./setup.sh
 
 # The script will show you:
 # 1. List of existing projects in ../Projects/
@@ -220,7 +220,7 @@ cd ~/Development/Docker
 
 ```bash
 # Interactive menu for project selection
-./scripts/setup.sh
+./setup.sh
 
 # Choose from existing projects or create new
 # Select technology stack (PHP, Node.js, Flutter)
@@ -231,7 +231,7 @@ cd ~/Development/Docker
 
 ```bash
 # Start your development environment
-./scripts/start.sh
+./start.sh
 
 # Your applications are available at:
 # - Main app: http://project-name.dev
