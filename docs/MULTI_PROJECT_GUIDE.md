@@ -5,21 +5,25 @@
 ### 🌟 Tính năng mới
 
 #### ✅ Dynamic Container Naming
+
 - Container names tự động dựa trên tên thư mục dự án
 - Ví dụ: `fukoji_web`, `my-restaurant_web`, `another-project_web`
 - Không còn xung đột tên container giữa các dự án
 
 #### ✅ Port Conflict Detection
+
 - Tự động phát hiện port đang sử dụng
 - Gợi ý port thay thế khi có xung đột
 - Auto-fix ports trong file .env
 
 #### ✅ Dynamic Domain System
+
 - Domain tự động: `{project-name}.dev`
 - Tự động cấu hình hosts file
 - Hỗ trợ nhiều dự án cùng lúc
 
 #### ✅ Isolated Networks & Volumes
+
 - Network riêng biệt cho mỗi dự án
 - Volume prefix theo project name
 - Hoàn toàn cô lập giữa các dự án
@@ -29,14 +33,17 @@
 ## 🛠️ Scripts Mới
 
 ### 1. Multi-Project Analysis
+
 ```bash
 ./Server/scripts/multi-project-check.sh
 ```
+
 - Phân tích toàn diện xung đột multi-project
 - Kiểm tra containers, ports, networks, volumes
 - Đưa ra khuyến nghị giải quyết
 
 ### 2. Port Conflict Management
+
 ```bash
 # Chỉ kiểm tra
 ./Server/scripts/check-port-conflicts.sh check
@@ -49,6 +56,7 @@
 ```
 
 ### 3. Container Helper
+
 ```bash
 # Xem trạng thái containers
 ./Server/scripts/container-helper.sh status
@@ -87,7 +95,8 @@ cd /path/to/food-delivery
 ./Server/scripts/setup.sh
 ```
 
-### Hệ thống tự động:
+### Hệ thống tự động
+
 1. **Phát hiện xung đột port** → Auto-increment ports
 2. **Tạo container names** → `fukoji_web`, `restaurant-pos_web`, `food-delivery_web`
 3. **Cấu hình domains** → `fukoji.dev`, `restaurant-pos.dev`, `food-delivery.dev`
@@ -97,9 +106,10 @@ cd /path/to/food-delivery
 
 ## 🔍 Troubleshooting Multi-Project
 
-### Lỗi thường gặp và giải pháp:
+### Lỗi thường gặp và giải pháp
 
 #### 1. Port đã sử dụng
+
 ```bash
 # Tự động sửa
 ./Server/scripts/check-port-conflicts.sh auto-fix
@@ -111,6 +121,7 @@ PMA_PORT=8082
 ```
 
 #### 2. Container name conflict
+
 ```bash
 # Kiểm tra dynamic naming
 ./Server/scripts/container-helper.sh names
@@ -120,6 +131,7 @@ PMA_PORT=8082
 ```
 
 #### 3. Network subnet conflict
+
 ```bash
 # Xem networks hiện tại
 docker network ls | grep fukoji
@@ -129,6 +141,7 @@ docker network ls | grep fukoji
 ```
 
 #### 4. Volume conflict
+
 - Volumes tự động prefix theo project name
 - `fukoji_mysql_data`, `restaurant-pos_mysql_data`
 - Không xung đột giữa các dự án
@@ -137,7 +150,8 @@ docker network ls | grep fukoji
 
 ## 📊 Monitoring Multi-Project
 
-### Dashboard tổng quan:
+### Dashboard tổng quan
+
 ```bash
 # Xem tất cả projects đang chạy
 ./Server/scripts/multi-project-check.sh
@@ -149,7 +163,8 @@ cd /path/to/project && ./Server/scripts/container-helper.sh status
 netstat -tulpn | grep -E ':(808[0-9]|330[6-9]|808[1-9])'
 ```
 
-### Log aggregation:
+### Log aggregation
+
 ```bash
 # Logs project hiện tại
 ./Server/scripts/container-helper.sh logs web 50
@@ -165,21 +180,25 @@ docker logs food-delivery_web --tail 20
 ## 🎯 Best Practices
 
 ### 1. Naming Convention
+
 - Project folder name = Domain name = Container prefix
 - Sử dụng lowercase, dashes thay spaces
 - Ví dụ: `my-restaurant` → `my-restaurant.dev` → `my-restaurant_web`
 
 ### 2. Port Management
+
 - Để hệ thống auto-assign ports
 - Backup .env trước khi thay đổi
 - Sử dụng port ranges: 8080-8089, 3306-3315, 8081-8090
 
 ### 3. Resource Management
+
 - Monitor disk usage: `docker system df`
 - Cleanup unused volumes: `docker volume prune`
 - Regular health checks: `./Server/scripts/multi-project-check.sh`
 
 ### 4. Development Workflow
+
 ```bash
 # Start new project
 git clone project && cd project
@@ -199,6 +218,7 @@ git clone project && cd project
 ## 🔮 Advanced Features
 
 ### Environment Variables
+
 ```bash
 # Dynamic configuration
 PROJECT_NAME=${PROJECT_NAME}
@@ -209,6 +229,7 @@ DOMAIN=${DOMAIN:-${PROJECT_NAME}.dev}
 ```
 
 ### Docker Compose Override
+
 ```yaml
 # Server/docker/docker-compose.override.yml
 version: '3.8'
@@ -220,6 +241,7 @@ services:
 ```
 
 ### Custom Domains
+
 ```bash
 # Manual domain setup
 echo "127.0.0.1 my-custom.local" >> /etc/hosts
