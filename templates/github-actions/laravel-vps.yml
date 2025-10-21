@@ -107,7 +107,6 @@ jobs:
       env:
         VPS_HOST: ${{ secrets.VPS_HOST }}
         VPS_USER: ${{ secrets.VPS_USER }}
-        PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
         DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}
         DB_HOST: ${{ secrets.DB_HOST }}
         DB_DATABASE: ${{ secrets.DB_DATABASE }}
@@ -122,10 +121,8 @@ jobs:
         echo "🚀 Starting Laravel deployment to VPS..."
 
         # Project variables
-        PROJECT_PATH="/home/${PROJECT_NAME}"
-        BACKUP_DIR="${PROJECT_PATH}/backups"
-
-        # Create directories
+        PROJECT_PATH="/home/${DOMAIN_NAME}"
+        BACKUP_DIR="${PROJECT_PATH}/backups"        # Create directories
         mkdir -p "$BACKUP_DIR"
         mkdir -p "$PROJECT_PATH/public_html"
         mkdir -p "$PROJECT_PATH/laravel-app"
@@ -170,16 +167,18 @@ jobs:
           --exclude='storage/framework/sessions/*' \
           --exclude='storage/framework/views/*' \
           --exclude='bootstrap/cache/*' \
-          ./ $VPS_USER@$VPS_HOST:/home/$PROJECT_NAME/laravel-app/
+          ./ $VPS_USER@$VPS_HOST:/home/$DOMAIN_NAME/laravel-app/
 
         # Sync public folder to public_html (web root)
         echo "📁 Syncing public files to web root..."
         rsync -avz \
-          ./public/ $VPS_USER@$VPS_HOST:/home/$PROJECT_NAME/public_html/    - name: Configure Laravel on VPS
+          ./public/ $VPS_USER@$VPS_HOST:/home/$DOMAIN_NAME/public_html/
+
+    - name: Configure Laravel on VPS
       env:
         VPS_HOST: ${{ secrets.VPS_HOST }}
         VPS_USER: ${{ secrets.VPS_USER }}
-        PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
+        DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}
         DB_HOST: ${{ secrets.DB_HOST }}
         DB_DATABASE: ${{ secrets.DB_DATABASE }}
         DB_USERNAME: ${{ secrets.DB_USERNAME }}
@@ -188,7 +187,7 @@ jobs:
         APP_URL: ${{ secrets.APP_URL }}
       run: |
         ssh $VPS_USER@$VPS_HOST "
-          cd /home/$PROJECT_NAME/laravel-app
+          cd /home/$DOMAIN_NAME/laravel-app
 
           # Create .env file
           cat > .env << 'ENVFILE'
@@ -255,10 +254,10 @@ require __DIR__.'/../laravel-app/vendor/autoload.php';
 INDEXPHP
 
           # Set proper permissions
-          chown -R $VPS_USER:$VPS_USER /home/$PROJECT_NAME
-          chmod -R 755 /home/$PROJECT_NAME/public_html
-          chmod -R 755 /home/$PROJECT_NAME/laravel-app/storage
-          chmod -R 755 /home/$PROJECT_NAME/laravel-app/bootstrap/cache
+          chown -R $VPS_USER:$VPS_USER /home/$DOMAIN_NAME
+          chmod -R 755 /home/$DOMAIN_NAME/public_html
+          chmod -R 755 /home/$DOMAIN_NAME/laravel-app/storage
+          chmod -R 755 /home/$DOMAIN_NAME/laravel-app/bootstrap/cache
 
           echo '✅ Laravel configuration completed'
         "
@@ -267,10 +266,10 @@ INDEXPHP
       env:
         VPS_HOST: ${{ secrets.VPS_HOST }}
         VPS_USER: ${{ secrets.VPS_USER }}
-        PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
+        DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}
       run: |
         ssh $VPS_USER@$VPS_HOST "
-          cd /home/$PROJECT_NAME/laravel-app
+          cd /home/$DOMAIN_NAME/laravel-app
 
           # Clear all caches
           php artisan config:clear
@@ -298,10 +297,10 @@ INDEXPHP
       env:
         VPS_HOST: ${{ secrets.VPS_HOST }}
         VPS_USER: ${{ secrets.VPS_USER }}
-        PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
+        DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}
       run: |
         ssh $VPS_USER@$VPS_HOST "
-          cd /home/$PROJECT_NAME/public_html
+          cd /home/$DOMAIN_NAME/public_html
 
           # Create Laravel-specific .htaccess
           cat > .htaccess << 'HTACCESS'

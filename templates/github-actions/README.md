@@ -48,12 +48,12 @@ Copy the appropriate `.yml` file to your project's `.github/workflows/` director
 In your GitHub repository, go to **Settings > Secrets and variables > Actions** and add:
 
 #### Required Secrets (All Templates)
+
 ```bash
 VPS_SSH_KEY     # Private SSH key for VPS access
 VPS_HOST        # VPS IP address or hostname
-VPS_USER        # VPS username (same as project name)
-PROJECT_NAME    # Project name (will be used as directory: /home/{PROJECT_NAME}/public_html)
-DOMAIN_NAME     # Your domain name (e.g., example.com)
+VPS_USER        # VPS username (usually same as domain)
+DOMAIN_NAME     # Domain name (will be used as directory: /home/{DOMAIN_NAME}/public_html)
 ```
 
 #### Laravel Specific Secrets:
@@ -68,19 +68,20 @@ APP_URL         # Full application URL (https://example.com)
 
 ### 3. VPS Directory Structure
 
-Your VPS should have this structure:
+Your VPS should have this structure (automatically created by Virtualmin):
 
-```
-/home/{PROJECT_NAME}/
+```bash
+/home/{DOMAIN_NAME}/
 ├── public_html/          # Web root (where files are served)
 ├── backups/              # Deployment backups (auto-created)
 └── laravel-app/          # Laravel app (Laravel only)
 ```
 
-**Example for project named "mystore":**
-```
-/home/mystore/
-├── public_html/          # Accessible via domain
+**Example for domain "example.com":**
+
+```bash
+/home/example.com/
+├── public_html/          # Accessible via https://example.com
 ├── backups/              # Auto-generated backups
 └── laravel-app/          # Laravel source (if using Laravel)
 ```
@@ -105,11 +106,12 @@ Copy the private key content to `VPS_SSH_KEY` secret.
 ## 🔧 Customization
 
 ### Modify Deployment Paths
-Edit the `PROJECT_NAME` in your workflow or secrets to match your VPS setup:
+
+Edit the `DOMAIN_NAME` in your workflow or secrets to match your VPS setup:
 
 ```yaml
 env:
-  PROJECT_NAME: youprojectname  # Will create /home/yourprojectname/public_html
+  DOMAIN_NAME: example.com  # Will deploy to /home/example.com/public_html
 ```
 
 ### Add Environment Variables
