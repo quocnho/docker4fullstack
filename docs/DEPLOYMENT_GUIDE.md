@@ -1,6 +1,6 @@
-# 🚀 Hướng Dẫn Chi Tiết: Upload Source Code từ GitHub Main lên VPS
+# 🚀 Detailed Guide: Upload Source Code from GitHub Main to VPS
 
-## 📋 Tổng quan quy trình
+## 📋 Process Overview
 
 ```mermaid
 graph LR
@@ -11,37 +11,37 @@ graph LR
     E --> F[Website Live]
 ```
 
-## 🛠️ Bước 1: Chuẩn bị VPS
+## 🛠️ Step 1: Prepare VPS
 
-### 1.1. Tạo domain trong Virtualmin
+### 1.1. Create domain in Virtualmin
 ```bash
-# Đăng nhập Virtualmin và tạo domain mới
-# Domain sẽ tự động tạo cấu trúc: /home/domain.com/public_html
+# Login to Virtualmin and create new domain
+# Domain will automatically create structure: /home/domain.com/public_html
 ```
 
-### 1.2. Cài đặt SSH Key trên VPS
+### 1.2. Install SSH Key on VPS
 ```bash
-# Trên máy local, tạo SSH key pair
+# On local machine, create SSH key pair
 ssh-keygen -t rsa -b 4096 -C "github-actions@yourdomain.com"
 
-# Copy public key lên VPS
+# Copy public key to VPS
 ssh-copy-id username@your-vps-ip
 
-# Hoặc manual copy:
+# Or manual copy:
 cat ~/.ssh/id_rsa.pub | ssh username@your-vps-ip "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys"
 ```
 
 ### 1.3. Test SSH connection
 ```bash
-# Test kết nối SSH không cần password
+# Test SSH connection without password
 ssh username@your-vps-ip "echo 'SSH connection successful'"
 ```
 
-## 📁 Bước 2: Chuẩn bị Source Code
+## 📁 Step 2: Prepare Source Code
 
-### 2.1. Tạo hoặc clone project
+### 2.1. Create or clone project
 ```bash
-# Option 1: Tạo project mới
+# Option 1: Create new project
 mkdir my-laravel-app
 cd my-laravel-app
 git init
@@ -51,34 +51,34 @@ git clone https://github.com/username/my-project.git
 cd my-project
 ```
 
-### 2.2. Sử dụng Docker setup để thêm GitHub Actions
+### 2.2. Use Docker setup to add GitHub Actions
 ```bash
-# Chạy Docker setup script
+# Run Docker setup script
 cd /path/to/Docker
 ./scripts/setup.sh
 
-# Chọn existing project từ ../Projects/
-# Script sẽ hỏi có muốn setup GitHub Actions không
-# Chọn template phù hợp (Laravel, CodeIgniter, Vue.js, Flutter, etc.)
+# Select existing project from ../Projects/
+# Script will ask if you want to setup GitHub Actions
+# Choose appropriate template (Laravel, CodeIgniter, Vue.js, Flutter, etc.)
 ```
 
-## ⚙️ Bước 3: Cấu hình GitHub Repository
+## ⚙️ Step 3: Configure GitHub Repository
 
-### 3.1. Tạo repository trên GitHub
+### 3.1. Create repository on GitHub
 ```bash
-# Tạo repo trên GitHub (via web interface)
-# Hoặc sử dụng GitHub CLI
+# Create repo on GitHub (via web interface)
+# Or use GitHub CLI
 gh repo create my-project --public
 ```
 
 ### 3.2. Setup GitHub Secrets
-Vào **Settings** → **Secrets and variables** → **Actions** và thêm:
+Go to **Settings** → **Secrets and variables** → **Actions** and add:
 
-#### Required Secrets (Tất cả templates):
+#### Required Secrets (All templates):
 ```bash
-VPS_SSH_KEY     # Content của private key (~/.ssh/id_rsa)
-VPS_HOST        # IP hoặc hostname của VPS (e.g., 192.168.1.100)
-VPS_USER        # Username VPS (e.g., root hoặc domain user)
+VPS_SSH_KEY     # Content of private key (~/.ssh/id_rsa)
+VPS_HOST        # VPS IP or hostname (e.g., 192.168.1.100)
+VPS_USER        # VPS username (e.g., root or domain user)
 DOMAIN_NAME     # Domain name (e.g., example.com)
 ```
 
@@ -98,72 +98,72 @@ APP_KEY         # php artisan key:generate --show
 
 ### 3.3. Copy Private SSH Key
 ```bash
-# Copy nội dung private key
+# Copy private key content
 cat ~/.ssh/id_rsa
 
-# Paste vào GitHub Secret VPS_SSH_KEY
-# Bao gồm cả -----BEGIN/END PRIVATE KEY-----
+# Paste into GitHub Secret VPS_SSH_KEY
+# Include -----BEGIN/END PRIVATE KEY-----
 ```
 
-## 🔧 Bước 4: Cấu hình GitHub Actions Workflow
+## 🔧 Step 4: Configure GitHub Actions Workflow
 
-### 4.1. Kiểm tra workflow file
+### 4.1. Check workflow file
 ```bash
-# File được tạo tự động bởi setup script
+# File automatically created by setup script
 ls -la .github/workflows/
 
-# Nội dung file deploy-vps.yml
+# Content of deploy-vps.yml file
 cat .github/workflows/deploy-vps.yml
 ```
 
-### 4.2. Customize workflow (nếu cần)
+### 4.2. Customize workflow (if needed)
 ```yaml
 # .github/workflows/deploy-vps.yml
 name: Deploy to VPS
 
 on:
   push:
-    branches: [ main ]  # Trigger khi push lên main
+    branches: [ main ]  # Trigger when pushing to main
   pull_request:
     branches: [ main ]
-    types: [ closed ]   # Trigger khi merge PR
+    types: [ closed ]   # Trigger when merging PR
 
 # ... rest of workflow
 ```
 
-## 📤 Bước 5: Deploy lên GitHub
+## 📤 Step 5: Deploy to GitHub
 
-### 5.1. Add và commit files
+### 5.1. Add and commit files
 ```bash
-# Add tất cả files
+# Add all files
 git add .
 
-# Commit với message rõ ràng
+# Commit with clear message
 git commit -m "feat: initial project setup with GitHub Actions deployment"
 
-# Thêm remote origin (nếu chưa có)
+# Add remote origin (if not exists)
 git remote add origin https://github.com/username/my-project.git
 ```
 
-### 5.2. Push lên main branch
+### 5.2. Push to main branch
 ```bash
-# Push lên GitHub main branch
+# Push to GitHub main branch
 git push -u origin main
 
-# GitHub Actions sẽ tự động trigger
+# GitHub Actions will automatically trigger
 ```
 
-## 🎯 Bước 6: Theo dõi Deployment
+## 🎯 Step 6: Monitor Deployment
 
-### 6.1. Xem GitHub Actions logs
-1. Vào GitHub repository
-2. Click tab **Actions**
-3. Click vào workflow đang chạy
-4. Xem real-time logs
+### 6.1. View GitHub Actions logs
+1. Go to GitHub repository
+2. Click **Actions** tab
+3. Click on running workflow
+4. View real-time logs
 
 ### 6.2. Monitor deployment steps
 ```bash
-# GitHub Actions sẽ thực hiện:
+# GitHub Actions will perform:
 1. ✅ Checkout code
 2. ✅ Setup PHP/Node.js
 3. ✅ Install dependencies
@@ -176,63 +176,63 @@ git push -u origin main
 10. ✅ Verify deployment
 ```
 
-## 🔍 Bước 7: Verification & Troubleshooting
+## 🔍 Step 7: Verification & Troubleshooting
 
-### 7.1. Kiểm tra website
+### 7.1. Check website
 ```bash
 # Test website accessibility
 curl -I https://yourdomain.com
 
-# Kiểm tra trong browser
+# Check in browser
 open https://yourdomain.com
 ```
 
-### 7.2. Kiểm tra files trên VPS
+### 7.2. Check files on VPS
 ```bash
-# SSH vào VPS và kiểm tra
+# SSH to VPS and check
 ssh username@your-vps-ip
 
-# Kiểm tra structure
+# Check structure
 ls -la /home/yourdomain.com/
 ls -la /home/yourdomain.com/public_html/
 
-# Kiểm tra permissions
+# Check permissions
 ls -la /home/yourdomain.com/public_html/
 ```
 
-### 7.3. Xem logs nếu có lỗi
+### 7.3. View logs if errors occur
 ```bash
 # VPS web server logs
 tail -f /var/log/apache2/error.log
-# hoặc
+# or
 tail -f /var/log/nginx/error.log
 
 # Application logs (Laravel)
 tail -f /home/yourdomain.com/laravel-app/storage/logs/laravel.log
 ```
 
-## 🔄 Bước 8: Continuous Deployment
+## 🔄 Step 8: Continuous Deployment
 
-### 8.1. Workflow hàng ngày
+### 8.1. Daily workflow
 ```bash
 # 1. Develop locally
 git checkout -b feature/new-feature
 # ... make changes ...
 
-# 2. Test và commit
+# 2. Test and commit
 git add .
 git commit -m "feat: add new feature"
 git push origin feature/new-feature
 
-# 3. Tạo Pull Request trên GitHub
+# 3. Create Pull Request on GitHub
 
-# 4. Merge PR vào main
-# → GitHub Actions sẽ tự động deploy lên VPS
+# 4. Merge PR to main
+# → GitHub Actions will automatically deploy to VPS
 ```
 
 ### 8.2. Hotfix deployment
 ```bash
-# Cho urgent fixes
+# For urgent fixes
 git checkout main
 git pull origin main
 
@@ -241,24 +241,24 @@ git add .
 git commit -m "hotfix: critical bug fix"
 git push origin main
 
-# → Deployment sẽ trigger ngay lập tức
+# → Deployment will trigger immediately
 ```
 
-## 📊 Bước 9: Monitoring & Maintenance
+## 📊 Step 9: Monitoring & Maintenance
 
 ### 9.1. Backup management
 ```bash
-# Backups được tạo tự động trong /home/domain/backups/
-# Giữ lại 5 backups gần nhất
+# Backups are automatically created in /home/domain/backups/
+# Keep 5 most recent backups
 ssh username@vps-ip "ls -la /home/yourdomain.com/backups/"
 ```
 
 ### 9.2. Performance monitoring
 ```bash
-# Kiểm tra response time
+# Check response time
 curl -w "%{time_total}" -o /dev/null -s https://yourdomain.com
 
-# Kiểm tra resource usage trên VPS
+# Check resource usage on VPS
 ssh username@vps-ip "htop"
 ```
 
@@ -269,7 +269,7 @@ ssh username@vps-ip "htop"
 Error: Permission denied (publickey)
 
 Solution:
-1. Kiểm tra SSH key đã được add vào VPS chưa
+1. Check if SSH key has been added to VPS
 2. Verify VPS_SSH_KEY secret format
 3. Test SSH connection manually: ssh -i ~/.ssh/id_rsa username@vps-ip
 ```
@@ -279,7 +279,7 @@ Solution:
 Error: 403 Forbidden
 
 Solution:
-1. SSH vào VPS
+1. SSH to VPS
 2. Fix permissions:
    chmod -R 755 /home/yourdomain.com/public_html
    chown -R username:username /home/yourdomain.com/
@@ -290,8 +290,8 @@ Solution:
 Error: Database connection failed
 
 Solution:
-1. Kiểm tra database credentials trong GitHub Secrets
-2. Verify database tồn tại trên VPS
+1. Check database credentials in GitHub Secrets
+2. Verify database exists on VPS
 3. Test connection: mysql -h DB_HOST -u DB_USERNAME -p
 ```
 
@@ -300,12 +300,12 @@ Solution:
 Error: 500 Internal Server Error
 
 Laravel Solution:
-1. Kiểm tra .env file: ssh vps "cat /home/domain/laravel-app/.env"
+1. Check .env file: ssh vps "cat /home/domain/laravel-app/.env"
 2. Check APP_KEY: php artisan key:generate
 3. Storage permissions: chmod -R 775 storage bootstrap/cache
 
 CodeIgniter Solution:
-1. Kiểm tra base_url trong config
+1. Check base_url in config
 2. Verify database config
 3. Check .htaccess file
 ```
@@ -314,7 +314,7 @@ CodeIgniter Solution:
 
 ### Tip 1: Multiple Environments
 ```yaml
-# Deploy to staging và production
+# Deploy to staging and production
 on:
   push:
     branches: [ main ]     # → Production
@@ -323,7 +323,7 @@ on:
 
 ### Tip 2: Conditional Deployment
 ```yaml
-# Deploy chỉ khi có changes cụ thể
+# Deploy only when specific changes occur
 on:
   push:
     paths:
@@ -334,7 +334,7 @@ on:
 
 ### Tip 3: Slack Notifications
 ```yaml
-# Thêm notification step
+# Add notification step
 - name: Notify Slack
   if: always()
   uses: 8398a7/action-slack@v3
@@ -345,17 +345,17 @@ on:
 
 ## 🎉 Conclusion
 
-Sau khi hoàn thành tất cả bước trên, bạn sẽ có:
+After completing all the steps above, you will have:
 
 ✅ **Automatic Deployment**: Push to main → Auto deploy to VPS
-✅ **Backup System**: Tự động backup trước mỗi deployment
-✅ **Testing Pipeline**: Code được test trước khi deploy
-✅ **Error Monitoring**: Logs và notifications khi có lỗi
-✅ **Rollback Capability**: Có thể restore từ backup khi cần
+✅ **Backup System**: Automatic backup before each deployment
+✅ **Testing Pipeline**: Code is tested before deployment
+✅ **Error Monitoring**: Logs and notifications when errors occur
+✅ **Rollback Capability**: Can restore from backup when needed
 
 **Workflow Summary:**
 ```
 Local Development → Git Push → GitHub Actions → VPS Deployment → Live Website
 ```
 
-Giờ bạn có thể focus vào development, deployment sẽ được handle tự động! 🚀
+Now you can focus on development, deployment will be handled automatically! 🚀

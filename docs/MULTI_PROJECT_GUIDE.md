@@ -1,120 +1,120 @@
-# 🚀 Fukoji Docker - Multi-Project Support
+# 🚀 Docker for FullStack Environment - Multi-Project Support
 
-## Giải pháp triển khai Docker đa dự án không xung đột
+## Conflict-free multi-project Docker deployment solution
 
-### 🌟 Tính năng mới
+### 🌟 New Features
 
 #### ✅ Dynamic Container Naming
 
-- Container names tự động dựa trên tên thư mục dự án
-- Ví dụ: `fukoji_web`, `my-restaurant_web`, `another-project_web`
-- Không còn xung đột tên container giữa các dự án
+- Automatic container names based on project directory name
+- Example: `myproject_web`, `restaurant-pos_web`, `another-project_web`
+- No more container name conflicts between projects
 
 #### ✅ Port Conflict Detection
 
-- Tự động phát hiện port đang sử dụng
-- Gợi ý port thay thế khi có xung đột
-- Auto-fix ports trong file .env
+- Automatically detects ports in use
+- Suggests alternative ports when conflicts occur
+- Auto-fix ports in .denv files
 
 #### ✅ Dynamic Domain System
 
-- Domain tự động: `{project-name}.dev`
-- Tự động cấu hình hosts file
-- Hỗ trợ nhiều dự án cùng lúc
+- Automatic domains: `{project-name}.dev`
+- Automatic hosts file configuration
+- Support for multiple projects simultaneously
 
 #### ✅ Isolated Networks & Volumes
 
-- Network riêng biệt cho mỗi dự án
-- Volume prefix theo project name
-- Hoàn toàn cô lập giữa các dự án
+- Separate network for each project
+- Volume prefix based on project name
+- Complete isolation between projects
 
 ---
 
-## 🛠️ Scripts Mới
+## 🛠️ New Scripts
 
 ### 1. Multi-Project Analysis
 
 ```bash
-./Server/scripts/multi-project-check.sh
+./scripts/multi-project-check.sh
 ```
 
-- Phân tích toàn diện xung đột multi-project
-- Kiểm tra containers, ports, networks, volumes
-- Đưa ra khuyến nghị giải quyết
+- Comprehensive multi-project conflict analysis
+- Check containers, ports, networks, volumes
+- Provide resolution recommendations
 
 ### 2. Port Conflict Management
 
 ```bash
-# Chỉ kiểm tra
-./Server/scripts/check-port-conflicts.sh check
+# Check only
+./scripts/check-port-conflicts.sh check
 
-# Tự động sửa xung đột
-./Server/scripts/check-port-conflicts.sh auto-fix
+# Auto-fix conflicts
+./scripts/check-port-conflicts.sh auto-fix
 
 # Force update ports
-./Server/scripts/check-port-conflicts.sh fix
+./scripts/check-port-conflicts.sh fix
 ```
 
 ### 3. Container Helper
 
 ```bash
-# Xem trạng thái containers
-./Server/scripts/container-helper.sh status
+# View container status
+./scripts/container-helper.sh status
 
-# Thực thi lệnh trong container
-./Server/scripts/container-helper.sh exec web bash
-./Server/scripts/container-helper.sh exec mysql mysql -u fukoji -p
+# Execute commands in container
+./scripts/container-helper.sh exec web bash
+./scripts/container-helper.sh exec mysql mysql -u root -p
 
-# Xem logs
-./Server/scripts/container-helper.sh logs web 100
+# View logs
+./scripts/container-helper.sh logs web 100
 
-# Xem tên dynamic đang sử dụng
-./Server/scripts/container-helper.sh names
+# View dynamic names in use
+./scripts/container-helper.sh names
 
-# Cleanup project (giữ volumes)
-./Server/scripts/container-helper.sh cleanup
+# Cleanup project (preserve volumes)
+./scripts/container-helper.sh cleanup
 ```
 
 ---
 
-## 🚀 Quy trình triển khai Multi-Project
+## 🚀 Multi-Project Deployment Workflow
 
-### Scenario: Chạy đồng thời 3 dự án Fukoji
+### Scenario: Running 3 projects simultaneously
 
 ```bash
-# Project 1: fukoji (port 8080, 3306, 8081)
-cd /path/to/fukoji
-./Server/scripts/setup.sh
+# Project 1: main-app (port 8080, 3306, 8081)
+cd /path/to/main-app
+./scripts/setup.sh
 
 # Project 2: restaurant-pos (port 8090, 3307, 8082)
 cd /path/to/restaurant-pos
-./Server/scripts/setup.sh
+./scripts/setup.sh
 
 # Project 3: food-delivery (port 8100, 3308, 8083)
 cd /path/to/food-delivery
-./Server/scripts/setup.sh
+./scripts/setup.sh
 ```
 
-### Hệ thống tự động
+### Automatic System
 
-1. **Phát hiện xung đột port** → Auto-increment ports
-2. **Tạo container names** → `fukoji_web`, `restaurant-pos_web`, `food-delivery_web`
-3. **Cấu hình domains** → `fukoji.dev`, `restaurant-pos.dev`, `food-delivery.dev`
-4. **Tạo networks riêng** → `${PROJECT_NAME}_network`, `restaurant-pos_network`, etc.
+1. **Detect port conflicts** → Auto-increment ports
+2. **Create container names** → `main-app_web`, `restaurant-pos_web`, `food-delivery_web`
+3. **Configure domains** → `main-app.dev`, `restaurant-pos.dev`, `food-delivery.dev`
+4. **Create separate networks** → `main-app_network`, `restaurant-pos_network`, etc.
 
 ---
 
-## 🔍 Troubleshooting Multi-Project
+## 🔍 Multi-Project Troubleshooting
 
-### Lỗi thường gặp và giải pháp
+### Common issues and solutions
 
-#### 1. Port đã sử dụng
+#### 1. Port already in use
 
 ```bash
-# Tự động sửa
-./Server/scripts/check-port-conflicts.sh auto-fix
+# Auto-fix
+./scripts/check-port-conflicts.sh auto-fix
 
-# Hoặc manual trong .env
+# Or manual in .denv
 WEB_PORT=8090
 DB_PORT=3307
 PMA_PORT=8082
@@ -123,54 +123,54 @@ PMA_PORT=8082
 #### 2. Container name conflict
 
 ```bash
-# Kiểm tra dynamic naming
-./Server/scripts/container-helper.sh names
+# Check dynamic naming
+./scripts/container-helper.sh names
 
-# Cleanup containers cũ
-./Server/scripts/container-helper.sh cleanup force
+# Cleanup old containers
+./scripts/container-helper.sh cleanup force
 ```
 
 #### 3. Network subnet conflict
 
 ```bash
-# Xem networks hiện tại
-docker network ls | grep fukoji
+# View current networks
+docker network ls | grep docker4fullstack
 
 # Multi-project analysis
-./Server/scripts/multi-project-check.sh
+./scripts/multi-project-check.sh
 ```
 
 #### 4. Volume conflict
 
-- Volumes tự động prefix theo project name
-- `fukoji_mysql_data`, `restaurant-pos_mysql_data`
-- Không xung đột giữa các dự án
+- Volumes automatically prefixed by project name
+- `main-app_mysql_data`, `restaurant-pos_mysql_data`
+- No conflicts between projects
 
 ---
 
-## 📊 Monitoring Multi-Project
+## 📊 Multi-Project Monitoring
 
-### Dashboard tổng quan
+### Overview Dashboard
 
 ```bash
-# Xem tất cả projects đang chạy
-./Server/scripts/multi-project-check.sh
+# View all running projects
+./scripts/multi-project-check.sh
 
-# Status từng project
-cd /path/to/project && ./Server/scripts/container-helper.sh status
+# Status per project
+cd /path/to/project && ./scripts/container-helper.sh status
 
 # Port summary
 netstat -tulpn | grep -E ':(808[0-9]|330[6-9]|808[1-9])'
 ```
 
-### Log aggregation
+### Log Aggregation
 
 ```bash
-# Logs project hiện tại
-./Server/scripts/container-helper.sh logs web 50
+# Current project logs
+./scripts/container-helper.sh logs web 50
 
-# Logs tất cả web containers
-docker logs fukoji_web --tail 20
+# All web container logs
+docker logs main-app_web --tail 20
 docker logs restaurant-pos_web --tail 20
 docker logs food-delivery_web --tail 20
 ```
@@ -182,35 +182,35 @@ docker logs food-delivery_web --tail 20
 ### 1. Naming Convention
 
 - Project folder name = Domain name = Container prefix
-- Sử dụng lowercase, dashes thay spaces
-- Ví dụ: `my-restaurant` → `my-restaurant.dev` → `my-restaurant_web`
+- Use lowercase, dashes instead of spaces
+- Example: `my-restaurant` → `my-restaurant.dev` → `my-restaurant_web`
 
 ### 2. Port Management
 
-- Để hệ thống auto-assign ports
-- Backup .env trước khi thay đổi
-- Sử dụng port ranges: 8080-8089, 3306-3315, 8081-8090
+- Let the system auto-assign ports
+- Backup .denv before changes
+- Use port ranges: 8080-8089, 3306-3315, 8081-8090
 
 ### 3. Resource Management
 
 - Monitor disk usage: `docker system df`
 - Cleanup unused volumes: `docker volume prune`
-- Regular health checks: `./Server/scripts/multi-project-check.sh`
+- Regular health checks: `./scripts/multi-project-check.sh`
 
 ### 4. Development Workflow
 
 ```bash
 # Start new project
 git clone project && cd project
-./Server/scripts/setup.sh    # Auto-resolves conflicts
+./scripts/setup.sh    # Auto-resolves conflicts
 
 # Daily development
-./Server/scripts/start.sh     # Uses existing config
-./Server/scripts/stop.sh      # Clean shutdown
+./scripts/start.sh     # Uses existing config
+./scripts/stop.sh      # Clean shutdown
 
 # Troubleshooting
-./Server/scripts/multi-project-check.sh
-./Server/scripts/container-helper.sh status
+./scripts/multi-project-check.sh
+./scripts/container-helper.sh status
 ```
 
 ---
@@ -231,7 +231,7 @@ DOMAIN=${DOMAIN:-${PROJECT_NAME}.dev}
 ### Docker Compose Override
 
 ```yaml
-# Server/docker/docker-compose.override.yml
+# containers/docker-compose.override.yml
 version: '3.8'
 services:
   web:
@@ -245,7 +245,7 @@ services:
 ```bash
 # Manual domain setup
 echo "127.0.0.1 my-custom.local" >> /etc/hosts
-# Update .env
+# Update .denv
 DOMAIN=my-custom.local
 ```
 
@@ -253,22 +253,22 @@ DOMAIN=my-custom.local
 
 ## 🤝 Contributing
 
-Khi phát triển tính năng multi-project:
+When developing multi-project features:
 
-1. Test với ít nhất 2 projects đồng thời
-2. Đảm bảo cleanup scripts hoạt động
-3. Update documentation cho features mới
-4. Test trên different OS (Linux, macOS, Windows)
+1. Test with at least 2 projects simultaneously
+2. Ensure cleanup scripts work properly
+3. Update documentation for new features
+4. Test on different OS (Linux, macOS, Windows)
 
 ---
 
 ## 📞 Support
 
-Nếu gặp vấn đề với multi-project deployment:
+If you encounter issues with multi-project deployment:
 
-1. Chạy diagnostic: `./Server/scripts/multi-project-check.sh`
-2. Kiểm tra ports: `./Server/scripts/check-port-conflicts.sh check`
-3. Xem container status: `./Server/scripts/container-helper.sh status`
-4. Cleanup và restart: `./Server/scripts/container-helper.sh cleanup && ./Server/scripts/setup.sh`
+1. Run diagnostic: `./scripts/multi-project-check.sh`
+2. Check ports: `./scripts/check-port-conflicts.sh check`
+3. View container status: `./scripts/container-helper.sh status`
+4. Cleanup and restart: `./scripts/container-helper.sh cleanup && ./scripts/setup.sh`
 
-**🎉 Bây giờ bạn có thể chạy unlimited Fukoji projects đồng thời mà không lo xung đột!**
+**🎉 Now you can run unlimited Docker for FullStack projects simultaneously without worrying about conflicts!**

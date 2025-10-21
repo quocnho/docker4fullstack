@@ -44,21 +44,44 @@ Whether you're building **Laravel APIs**, **Vue.js PWAs**, **Flutter mobile apps
 
 ## ⚡ **Quick Start**
 
-Get your development environment running in 3 simple steps:
+### 📁 **Directory Structure Setup**
+
+First, organize your workspace with the recommended directory structure:
 
 ```bash
-# 1. Clone the repository
-git clone https://github.com/quocnho/docker4fullstack.git
-cd docker4fullstack
+# Recommended workspace structure
+~/Development/
+├── Docker4Fullstack/          # This repository (Docker environment)
+└── Projects/                  # Your development projects
+    ├── my-laravel-app/
+    ├── restaurant-pos/
+    ├── flutter-mobile-app/
+    └── vue-pwa-project/
+```
 
-# 2. Run the interactive setup
+### 🚀 **Installation Steps**
+
+Get your development environment running in 4 simple steps:
+
+```bash
+# 1. Create workspace structure
+mkdir -p ~/Development/{Docker4Fullstack,Projects}
+cd ~/Development
+
+# 2. Clone the repository
+git clone https://github.com/quocnho/docker4fullstack.git Docker4Fullstack
+cd Docker4Fullstack
+
+# 3. Run the interactive setup
 ./scripts/setup.sh
 
-# 3. Start your development environment
+# 4. Start your development environment
 ./scripts/start.sh
 ```
 
 **That's it!** Your containerized development environment is ready! 🎉
+
+> **💡 Important:** The Docker4Fullstack directory must be at the same level as the Projects directory for the scripts to work correctly.
 
 ---
 
@@ -126,36 +149,72 @@ Perfect for:
 
 ## 📊 **Project Structure**
 
+### 🏗️ **Workspace Organization**
+
 ```
-Docker4FullStack/
-├── 📁 containers/              # Docker configurations
-│   ├── docker-compose.yml     # Multi-service orchestration
-│   ├── Dockerfile              # PHP/Apache environment
-│   └── Dockerfile.flutter      # Flutter development
-├── 📁 configs/                 # Service configurations
-│   ├── php/                    # PHP & Xdebug settings
-│   ├── nodejs/                 # Node.js configuration
-│   ├── flutter/                # Flutter development setup
-│   └── nginx/                  # Web server configuration
-├── 📁 scripts/                 # Management scripts
-│   ├── setup.sh                # Interactive project setup
-│   ├── start.sh                # Start development environment
-│   ├── stop.sh                 # Stop all containers
-│   └── container-helper.sh     # Container utilities
-├── 📁 templates/               # Project templates
-│   ├── laravel/                # Laravel starter template
-│   ├── vue-pwa/                # Vue.js PWA template
+~/Development/                  # Your main development workspace
+├── 📁 Docker4FullStack/       # This repository (Docker environment)
+│   ├── 📁 containers/         # Docker configurations
+│   │   ├── docker-compose.yml # Multi-service orchestration
+│   │   ├── Dockerfile         # PHP/Apache environment
+│   │   └── Dockerfile.flutter # Flutter development
+│   ├── 📁 configs/            # Service configurations
+│   │   ├── php/               # PHP & Xdebug settings
+│   │   ├── nodejs/            # Node.js configuration
+│   │   ├── flutter/           # Flutter development setup
+│   │   └── nginx/             # Web server configuration
+│   ├── 📁 scripts/            # Management scripts
+│   │   ├── setup.sh           # Interactive project setup
+│   │   ├── start.sh           # Start development environment
+│   │   ├── stop.sh            # Stop all containers
+│   │   └── container-helper.sh # Container utilities
+│   ├── 📁 templates/          # Project templates
+│   │   ├── laravel/           # Laravel starter template
+│   │   ├── vue-pwa/           # Vue.js PWA template
+│   │   ├── flutter/           # Flutter app template
+│   │   └── github-actions/    # VPS deployment workflows
+│   └── 📁 docs/               # Comprehensive documentation
+│       ├── README.md          # Detailed documentation
+│       ├── DEPLOYMENT_GUIDE.md # VPS deployment guide
+│       └── MULTI_PROJECT_GUIDE.md # Multi-project management
+└── 📁 Projects/               # Your development projects
+    ├── 📁 my-laravel-app/     # Laravel project
+    ├── 📁 restaurant-pos/     # CodeIgniter project
+    ├── 📁 flutter-mobile-app/ # Flutter project
+    └── 📁 vue-pwa-project/    # Vue.js PWA project
+```
+
+> **🔧 Setup Requirement:** The Docker4FullStack directory must be placed alongside the Projects directory for proper script functionality and project detection.
 │   ├── flutter/                # Flutter app template
 │   └── github-actions/         # VPS deployment workflows
 └── 📁 docs/                    # Comprehensive documentation
     ├── README.md               # Detailed documentation
     ├── DEPLOYMENT_GUIDE.md     # VPS deployment guide
     └── MULTI_PROJECT_GUIDE.md  # Multi-project management
+
 ```
 
 ---
 
 ## 🚀 **Development Workflow**
+
+### 📂 **Working with Projects**
+
+The setup script automatically detects projects in the `../Projects/` directory:
+
+```bash
+# Navigate to Docker4FullStack directory
+cd ~/Development/Docker4FullStack
+
+# Run setup - it will scan ../Projects/ for existing projects
+./scripts/setup.sh
+
+# The script will show you:
+# 1. List of existing projects in ../Projects/
+# 2. Option to create new project
+# 3. Technology stack selection
+# 4. GitHub Actions deployment setup
+```
 
 ### 1. **Project Setup**
 
