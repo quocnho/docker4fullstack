@@ -160,7 +160,7 @@ list_projects() {
             if [ -d "$dir" ]; then
                 local project_name=$(basename "$dir")
                 local tech_info=""
-                local denv_file="$dir.denv"
+                local denv_file="$dir/docker/.denv"
 
                 # Read technology info from .denv if exists
                 if [ -f "$denv_file" ]; then
@@ -234,7 +234,7 @@ create_new_project() {
 
 # Setup existing project
 setup_existing_project() {
-    local denv_file="$SELECTED_PROJECT_PATH/.denv"
+    local denv_file="$SELECTED_PROJECT_PATH/docker/.denv"
 
     echo -e "\n${BOLD}=== Setup Existing Project: $SELECTED_PROJECT ===${NC}"
 
@@ -434,9 +434,12 @@ configure_database() {
 
 # Generate .denv file
 generate_denv_file() {
-    local denv_file="$SELECTED_PROJECT_PATH/.denv"
+    local denv_file="$SELECTED_PROJECT_PATH/docker/.denv"
 
     print_info "Generating .denv configuration file..."
+
+    # Create docker directory if it doesn't exist
+    mkdir -p "$SELECTED_PROJECT_PATH/docker"
 
     cat > "$denv_file" << EOF
 # Docker for FullStack - Project Environment Configuration
@@ -496,9 +499,10 @@ copy_project_files() {
     local scripts_source="$DOCKER_ROOT/templates/project-scripts"
     if [ -d "$scripts_source" ]; then
         print_info "Copying project management scripts..."
-        cp "$scripts_source"/*.sh "$SELECTED_PROJECT_PATH/"
-        chmod +x "$SELECTED_PROJECT_PATH"/*.sh
-        print_step "Project scripts copied and made executable"
+        mkdir -p "$SELECTED_PROJECT_PATH/docker"
+        cp "$scripts_source"/*.sh "$SELECTED_PROJECT_PATH/docker/"
+        chmod +x "$SELECTED_PROJECT_PATH/docker"/*.sh
+        print_step "Project scripts copied to docker/ directory and made executable"
     fi
 
     # Copy technology-specific templates
@@ -786,7 +790,7 @@ copy_github_actions_template() {
 start_containers() {
     echo -e "\n${BOLD}=== Starting Docker Containers ===${NC}"
 
-    local denv_file="$SELECTED_PROJECT_PATH/.denv"
+    local denv_file="$SELECTED_PROJECT_PATH/docker/.denv"
 
     # Change to project directory
     cd "$SELECTED_PROJECT_PATH"
@@ -802,8 +806,62 @@ start_containers() {
         set +a
         print_step "Environment variables loaded"
     else
-        print_error ".denv file not found: $denv_file"
-        exit 1
+        # If .denv is missing, generate a reasonable default automatically
+        print_warning ".denv file not found: $denv_file"
+        print_info "Generating a default .denv for project ${SELECTED_PROJECT:-unknown}"
+
+        mkdir -p "$(dirname "$denv_file")"
+        cat > "$denv_file" << EOF
+# Auto-generated .denv - please review and customize
+PROJECT_NAME=${SELECTED_PROJECT:-project}
+CONTAINERS=web,mysql,phpmyadmin
+PHP_VERSION=8.3
+WEB_SERVER=apache
+NODE_VERSION=18
+
+# Ports
+WEB_PORT=8080
+DB_PORT=3306
+REDIS_PORT=6379
+NODE_PORT=3000
+NGINX_PORT=8081
+PMA_PORT=8082
+FLUTTER_PORT=5000
+VITE_PORT=5173
+
+# Database
+DB_NAME=${SELECTED_PROJECT:-project}_db
+DB_USER=developer
+DB_PASS=dev123
+MYSQL_ROOT_PASSWORD=root123
+
+# Technology stack
+TECH_STACK=laravel
+DEPLOYMENT_TARGET=vps
+GITHUB_ACTIONS=enabled
+
+# Dev env
+APP_ENV=development
+DEBUG=true
+XDEBUG=enabled
+
+# Resource limits
+PHP_MEMORY_LIMIT=512M
+MYSQL_MEMORY_LIMIT=1G
+REDIS_MEMORY_LIMIT=256M
+
+# User mapping
+USER_ID=$(id -u)
+GROUP_ID=$(id -g)
+EOF
+
+        print_step "Default .denv created: $denv_file"
+
+        # Load the newly created .denv
+        set -a
+        source "$denv_file"
+        set +a
+        print_step "Environment variables loaded from generated .denv"
     fi
 
     # Start containers with profiles
@@ -866,7 +924,8 @@ display_access_info() {
 
     echo -e "\n${BOLD}=== Project Files ===${NC}"
     echo -e "${BLUE}• Project directory:${NC} $SELECTED_PROJECT_PATH"
-    echo -e "${BLUE}• Configuration:${NC} $SELECTED_PROJECT_PATH/.denv"
+    echo -e "${BLUE}• Configuration:${NC} $SELECTED_PROJECT_PATH/docker/.denv"
+    echo -e "${BLUE}• Project scripts:${NC} $SELECTED_PROJECT_PATH/docker/"
     echo -e "${BLUE}• Docker compose:${NC} $DOCKER_ROOT/containers/docker-compose.yml"
 
     echo -e "\n${GREEN}Happy coding with Docker for FullStack! 🚀${NC}"
