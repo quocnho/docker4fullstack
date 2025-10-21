@@ -1,4 +1,4 @@
-# 🚀 QUOCNHO Team Docker Environment
+# 🚀 DOCKER ENVIRONMENT FOR FULLSTACK
 
 <div align="center">
 
@@ -46,7 +46,7 @@ cd your-project && ./start.sh     # Start your project
 
 ---
 
-## 🌟 *Why choose QUOCNHO Docker Environment?*
+## 🌟 *Why choose Docker for FullStack Environment?*
 
 *At QUOCNHO Team, we faced constant challenges managing multiple client projects across different technology stacks - PHP/Laravel for web applications, Flutter for mobile apps, Vue.js for PWAs, and Node.js for APIs. Each project required different setups, conflicting dependencies, and hours of environment configuration for every team member. We lost countless hours troubleshooting "works on my machine" issues instead of focusing on actual development.*
 
