@@ -1,0 +1,497 @@
+name: Deploy CodeIgniter to VPS with Virtualmin
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+    types: [ closed ]
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.3'
+        extensions: mbstring, dom, fileinfo, mysql, gd, zip, intl
+        coverage: xdebug
+
+    - name: Cache Composer packages
+      id: composer-cache
+      uses: actions/cache@v3
+      with:
+        path: vendor
+        key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-php-
+
+    - name: Install dependencies
+      run: |
+        if [ -f composer.json ]; then
+          composer install --no-progress --prefer-dist --optimize-autoloader
+        else
+          echo "No composer.json found, skipping composer install"
+        fi
+
+    - name: Setup CodeIgniter environment
+      run: |
+        # Copy environment file if exists
+        if [ -f env ]; then
+          cp env .env
+        elif [ -f .env.example ]; then
+          cp .env.example .env
+        else
+          echo "Creating basic .env file for testing"
+          cat > .env << 'EOF'
+CI_ENVIRONMENT = testing
+app.baseURL = 'http://localhost:8080'
+database.default.hostname = localhost
+database.default.database = ci_test
+database.default.username = root
+database.default.password =
+database.default.DBDriver = MySQLi
+EOF
+        fi
+
+    - name: Setup test database
+      run: |
+        # Create test database configuration for SQLite
+        if [ -f app/Config/Database.php ]; then
+          echo "Database configuration found"
+        else
+          echo "Setting up basic database configuration"
+        fi
+
+    - name: Run CodeIgniter tests
+      run: |
+        # Check if CodeIgniter 4 test structure exists
+        if [ -f vendor/bin/phpunit ] && [ -d tests ]; then
+          echo "Running PHPUnit tests..."
+          vendor/bin/phpunit
+        elif [ -d application/tests ]; then
+          echo "CodeIgniter 3 test structure detected"
+          # Add CI3 specific tests if needed
+        else
+          echo "No tests found, creating basic validation test"
+          php -l app/Config/Routes.php
+          php -l app/Controllers/Home.php
+        fi
+
+  deploy:
+    name: Deploy to VPS
+    runs-on: ubuntu-latest
+    needs: test
+    if: (github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)) && needs.test.result == 'success'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.3'
+        extensions: mbstring, dom, fileinfo, mysql, gd, zip, intl
+
+    - name: Install Composer dependencies
+      run: |
+        if [ -f composer.json ]; then
+          composer install --no-dev --optimize-autoloader --no-progress --prefer-dist
+        else
+          echo "No composer.json found, skipping composer install"
+        fi
+
+    - name: Setup SSH Key
+      uses: webfactory/ssh-agent@v0.8.0
+      with:
+        ssh-private-key: ${{ secrets.VPS_SSH_KEY }}
+
+    - name: Add VPS to known hosts
+      run: |
+        mkdir -p ~/.ssh
+        ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+
+    - name: Deploy CodeIgniter to VPS
+      env:
+        VPS_HOST: ${{ secrets.VPS_HOST }}
+        VPS_USER: ${{ secrets.VPS_USER }}
+        DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}
+        DB_HOST: ${{ secrets.DB_HOST }}
+        DB_DATABASE: ${{ secrets.DB_DATABASE }}
+        DB_USERNAME: ${{ secrets.DB_USERNAME }}
+        DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      run: |
+        # Create CodeIgniter deployment script
+        cat > deploy-codeigniter.sh << 'EOF'
+        #!/bin/bash
+        set -e
+
+        echo "🚀 Starting CodeIgniter deployment to VPS..."
+
+        # Project variables
+        PROJECT_PATH="/home/${DOMAIN_NAME}"
+        BACKUP_DIR="${PROJECT_PATH}/backups"
+
+        # Create directories
+        mkdir -p "$BACKUP_DIR"
+        mkdir -p "$PROJECT_PATH/public_html"
+        mkdir -p "$PROJECT_PATH/codeigniter-app"
+
+        # Create backup of current deployment
+        if [ -d "$PROJECT_PATH/public_html" ] && [ "$(ls -A $PROJECT_PATH/public_html)" ]; then
+          echo "📦 Creating backup..."
+          BACKUP_NAME="codeigniter_backup_$(date +%Y%m%d_%H%M%S)"
+          tar -czf "$BACKUP_DIR/$BACKUP_NAME.tar.gz" -C "$PROJECT_PATH" public_html
+          echo "✅ Backup created: $BACKUP_NAME.tar.gz"
+
+          # Keep only last 5 backups
+          cd "$BACKUP_DIR"
+          ls -t *.tar.gz | tail -n +6 | xargs -r rm
+        fi
+
+        echo "✅ CodeIgniter deployment directories prepared"
+        EOF
+
+        # Make script executable and copy to VPS
+        chmod +x deploy-codeigniter.sh
+        scp deploy-codeigniter.sh $VPS_USER@$VPS_HOST:/tmp/
+
+        # Execute deployment script on VPS
+        ssh $VPS_USER@$VPS_HOST "bash /tmp/deploy-codeigniter.sh"
+
+        # Determine CodeIgniter version and structure
+        if [ -d "public" ]; then
+          echo "📁 CodeIgniter 4 structure detected"
+          # Sync CodeIgniter 4 files (excluding public folder initially)
+          rsync -avz --delete \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='node_modules' \
+            --exclude='.env' \
+            --exclude='*.log' \
+            --exclude='public' \
+            --exclude='writable/logs/*' \
+            --exclude='writable/cache/*' \
+            --exclude='writable/session/*' \
+            ./ $VPS_USER@$VPS_HOST:/home/$DOMAIN_NAME/codeigniter-app/
+
+          # Sync public folder to public_html
+          rsync -avz \
+            ./public/ $VPS_USER@$VPS_HOST:/home/$DOMAIN_NAME/public_html/
+        else
+          echo "📁 CodeIgniter 3 structure detected"
+          # For CI3, sync all files to public_html
+          rsync -avz --delete \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='node_modules' \
+            --exclude='.env' \
+            --exclude='*.log' \
+            --exclude='application/logs/*' \
+            --exclude='application/cache/*' \
+            ./ $VPS_USER@$VPS_HOST:/home/$DOMAIN_NAME/public_html/
+        fi
+
+    - name: Configure CodeIgniter on VPS
+      env:
+        VPS_HOST: ${{ secrets.VPS_HOST }}
+        VPS_USER: ${{ secrets.VPS_USER }}
+        DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}
+        DB_HOST: ${{ secrets.DB_HOST }}
+        DB_DATABASE: ${{ secrets.DB_DATABASE }}
+        DB_USERNAME: ${{ secrets.DB_USERNAME }}
+        DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        APP_URL: ${{ secrets.APP_URL }}
+      run: |
+        ssh $VPS_USER@$VPS_HOST "
+          # Determine CodeIgniter version
+          if [ -d '/home/$DOMAIN_NAME/codeigniter-app' ]; then
+            echo 'Configuring CodeIgniter 4...'
+            cd /home/$DOMAIN_NAME/codeigniter-app
+
+            # Create .env file for CI4
+            cat > .env << 'ENVFILE'
+CI_ENVIRONMENT = production
+app.baseURL = '$APP_URL'
+app.indexPage = ''
+
+database.default.hostname = $DB_HOST
+database.default.database = $DB_DATABASE
+database.default.username = $DB_USERNAME
+database.default.password = $DB_PASSWORD
+database.default.DBDriver = MySQLi
+database.default.DBPrefix =
+database.default.port = 3306
+
+logger.threshold = 4
+
+# Security
+security.csrfProtection = 'cookie'
+security.tokenRandomize = true
+security.tokenName = 'csrf_token_name'
+security.headerName = 'X-CSRF-TOKEN'
+security.cookieName = 'csrf_cookie_name'
+security.expires = 7200
+security.regenerate = true
+security.redirect = true
+
+# Session
+session.driver = 'CodeIgniter\Session\Handlers\FileHandler'
+session.cookieName = 'ci_session'
+session.expiration = 7200
+session.savePath = ''
+session.matchIP = false
+session.timeToUpdate = 300
+session.regenerateDestroy = false
+
+# Cache
+cache.handler = 'file'
+ENVFILE
+
+            # Update public/index.php to point to correct CI4 app location
+            cat > ../public_html/index.php << 'INDEXPHP'
+<?php
+
+// Path to the front controller (this file)
+define('FCPATH', __DIR__ . DIRECTORY_SEPARATOR);
+
+// Ensure the current directory is pointing to the front controller's directory
+chdir(FCPATH);
+
+/*
+ *---------------------------------------------------------------
+ * BOOTSTRAP THE APPLICATION
+ *---------------------------------------------------------------
+ * This process sets up the path constants, loads and registers
+ * our autoloader, along with Composer's, loads our constants
+ * and fires up an environment-specific bootstrapping.
+ */
+
+// Load our paths config file
+// This is the line that might need to be changed, depending on your folder structure.
+require FCPATH . '../codeigniter-app/app/Config/Paths.php';
+
+$paths = new Config\Paths();
+
+// Location of the framework bootstrap file.
+require $paths->systemDirectory . '/Boot.php';
+
+// Load environment settings from .env files into $_SERVER and $_ENV
+require_once $paths->systemDirectory . '/Config/DotEnv.php';
+(new CodeIgniter\Config\DotEnv(ROOTPATH))->load();
+
+/*
+ * ---------------------------------------------------------------
+ * GRAB OUR CODEIGNITER INSTANCE
+ * ---------------------------------------------------------------
+ */
+$app = Config\Services::codeigniter();
+$app->initialize();
+$context = is_cli() ? 'php-cli' : 'web';
+$app->setContext($context);
+
+/*
+ *---------------------------------------------------------------
+ * LAUNCH THE APPLICATION
+ *---------------------------------------------------------------
+ */
+$app->run();
+INDEXPHP
+
+          else
+            echo 'Configuring CodeIgniter 3...'
+            cd /home/$DOMAIN_NAME/public_html
+
+            # Create database config for CI3
+            if [ -f application/config/database.php ]; then
+              # Backup original config
+              cp application/config/database.php application/config/database.php.backup
+
+              # Update database configuration
+              sed -i \"s/'hostname' => 'localhost'/'hostname' => '$DB_HOST'/g\" application/config/database.php
+              sed -i \"s/'database' => ''/'database' => '$DB_DATABASE'/g\" application/config/database.php
+              sed -i \"s/'username' => ''/'username' => '$DB_USERNAME'/g\" application/config/database.php
+              sed -i \"s/'password' => ''/'password' => '$DB_PASSWORD'/g\" application/config/database.php
+            fi
+
+            # Update base_url in config.php
+            if [ -f application/config/config.php ]; then
+              sed -i \"s|\\\$config\['base_url'\] = ''|\\\$config['base_url'] = '$APP_URL'|g\" application/config/config.php
+            fi
+          fi
+
+          # Set proper permissions
+          chown -R $VPS_USER:$VPS_USER /home/$DOMAIN_NAME
+          chmod -R 755 /home/$DOMAIN_NAME/public_html
+
+          # Set writable permissions for CodeIgniter directories
+          if [ -d '/home/$DOMAIN_NAME/codeigniter-app/writable' ]; then
+            chmod -R 755 /home/$DOMAIN_NAME/codeigniter-app/writable
+          fi
+
+          if [ -d '/home/$DOMAIN_NAME/public_html/application/logs' ]; then
+            chmod -R 755 /home/$DOMAIN_NAME/public_html/application/logs
+          fi
+
+          if [ -d '/home/$DOMAIN_NAME/public_html/application/cache' ]; then
+            chmod -R 755 /home/$DOMAIN_NAME/public_html/application/cache
+          fi
+
+          echo '✅ CodeIgniter configuration completed'
+        "
+
+    - name: Create CodeIgniter .htaccess
+      env:
+        VPS_HOST: ${{ secrets.VPS_HOST }}
+        VPS_USER: ${{ secrets.VPS_USER }}
+        DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}
+      run: |
+        ssh $VPS_USER@$VPS_HOST "
+          cd /home/$DOMAIN_NAME/public_html
+
+          # Create CodeIgniter-specific .htaccess
+          cat > .htaccess << 'HTACCESS'
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Handle CodeIgniter routing
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.*)$ index.php [L]
+
+    # Remove index.php from URLs
+    RewriteCond %{THE_REQUEST} /index\.php [NC]
+    RewriteRule ^index\.php(?:/(.*))?$ /\$1 [R=301,L]
+</IfModule>
+
+# Security headers
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options nosniff
+    Header always set X-Frame-Options DENY
+    Header always set X-XSS-Protection \"1; mode=block\"
+    Header always set Referrer-Policy \"strict-origin-when-cross-origin\"
+</IfModule>
+
+# Cache static assets
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType text/css \"access plus 1 month\"
+    ExpiresByType application/javascript \"access plus 1 month\"
+    ExpiresByType image/png \"access plus 1 month\"
+    ExpiresByType image/jpg \"access plus 1 month\"
+    ExpiresByType image/jpeg \"access plus 1 month\"
+    ExpiresByType image/gif \"access plus 1 month\"
+    ExpiresByType image/svg+xml \"access plus 1 month\"
+    ExpiresByType application/font-woff \"access plus 1 month\"
+    ExpiresByType application/font-woff2 \"access plus 1 month\"
+</IfModule>
+
+# Deny access to sensitive files
+<Files \"composer.json\">
+    Order allow,deny
+    Deny from all
+</Files>
+
+<Files \"composer.lock\">
+    Order allow,deny
+    Deny from all
+</Files>
+
+<Files \".env\">
+    Order allow,deny
+    Deny from all
+</Files>
+
+# CodeIgniter 3 - Deny access to application folder
+<IfModule mod_alias.c>
+    RedirectMatch 403 ^/application/.*\$
+    RedirectMatch 403 ^/system/.*\$
+</IfModule>
+HTACCESS
+
+          echo '✅ CodeIgniter .htaccess created'
+        "
+
+    - name: Run CodeIgniter deployment tasks
+      env:
+        VPS_HOST: ${{ secrets.VPS_HOST }}
+        VPS_USER: ${{ secrets.VPS_USER }}
+        DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}
+      run: |
+        ssh $VPS_USER@$VPS_HOST "
+          if [ -d '/home/$DOMAIN_NAME/codeigniter-app' ]; then
+            echo 'Running CodeIgniter 4 deployment tasks...'
+            cd /home/$DOMAIN_NAME/codeigniter-app
+
+            # Clear cache if command exists
+            if [ -f spark ]; then
+              php spark cache:clear || echo 'Cache clear not available'
+            fi
+
+            # Run migrations if they exist
+            if [ -d app/Database/Migrations ] && [ -f spark ]; then
+              php spark migrate || echo 'No migrations to run'
+            fi
+          else
+            echo 'CodeIgniter 3 deployment - checking configuration...'
+            cd /home/$DOMAIN_NAME/public_html
+
+            # Clear any existing cache files
+            if [ -d application/cache ]; then
+              find application/cache -name '*.php' -type f -delete || true
+            fi
+
+            # Ensure log directory exists
+            mkdir -p application/logs
+          fi
+
+          echo '✅ CodeIgniter deployment tasks completed'
+        "
+
+    - name: Verify CodeIgniter deployment
+      env:
+        DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}
+      run: |
+        echo "🔍 Verifying CodeIgniter deployment..."
+
+        # Wait for web server to pick up changes
+        sleep 10
+
+        # Check if CodeIgniter site is accessible
+        if curl -f -s "https://$DOMAIN_NAME" > /dev/null; then
+          echo "✅ CodeIgniter site is accessible at https://$DOMAIN_NAME"
+
+          # Check if it looks like CodeIgniter content
+          CONTENT=$(curl -s "https://$DOMAIN_NAME")
+          if echo "$CONTENT" | grep -qi "codeigniter\|welcome\|ci"; then
+            echo "✅ CodeIgniter content detected"
+          else
+            echo "⚠️  CodeIgniter content not clearly detected"
+          fi
+
+        elif curl -f -s "http://$DOMAIN_NAME" > /dev/null; then
+          echo "⚠️  CodeIgniter site is accessible at http://$DOMAIN_NAME (no HTTPS)"
+        else
+          echo "❌ CodeIgniter site is not accessible"
+          exit 1
+        fi
+
+    - name: Notify deployment status
+      if: always()
+      env:
+        DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}
+      run: |
+        if [ "${{ job.status }}" == "success" ]; then
+          echo "🎉 CodeIgniter deployment successful! Site is live at https://$DOMAIN_NAME"
+        else
+          echo "❌ CodeIgniter deployment failed. Check the logs above for details."
+        fi

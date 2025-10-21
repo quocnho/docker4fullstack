@@ -19,7 +19,17 @@ This directory contains GitHub Actions workflow templates for deploying differen
   - Proper Laravel directory structure for Virtualmin
 - **Best for**: Laravel web applications, APIs
 
-### 3. Vue.js PWA VPS Deployment (`vue-vps.yml`)
+### 3. CodeIgniter VPS Deployment (`codeigniter-vps.yml`)
+- **Use for**: CodeIgniter PHP applications (CI3 & CI4)
+- **Features**:
+  - Automatic CI3/CI4 detection
+  - Composer dependency management
+  - Database configuration
+  - Environment setup (.env for CI4)
+  - Proper file permissions and security
+- **Best for**: CodeIgniter web applications, legacy PHP projects
+
+### 4. Vue.js PWA VPS Deployment (`vue-vps.yml`)
 - **Use for**: Vue.js Progressive Web Apps
 - **Features**:
   - npm build process
@@ -29,7 +39,7 @@ This directory contains GitHub Actions workflow templates for deploying differen
   - Performance auditing
 - **Best for**: Vue.js SPAs, PWAs, frontend applications
 
-### 4. Flutter Web VPS Deployment (`flutter-web-vps.yml`)
+### 5. Flutter Web VPS Deployment (`flutter-web-vps.yml`)
 - **Use for**: Flutter web applications
 - **Features**:
   - Flutter web build
@@ -57,12 +67,25 @@ DOMAIN_NAME     # Domain name (will be used as directory: /home/{DOMAIN_NAME}/pu
 ```
 
 #### Laravel Specific Secrets:
-```
+
+```bash
 DB_HOST         # Database host (usually localhost)
 DB_DATABASE     # Database name
 DB_USERNAME     # Database username
 DB_PASSWORD     # Database password
 APP_KEY         # Laravel application key
+APP_URL         # Full application URL (https://example.com)
+```
+
+#### CodeIgniter Specific Secrets:
+
+```bash
+DB_HOST         # Database host (usually localhost)
+DB_DATABASE     # Database name
+DB_USERNAME     # Database username
+DB_PASSWORD     # Database password
+APP_URL         # Application base URL (https://example.com)
+```
 APP_URL         # Full application URL (https://example.com)
 ```
 
@@ -225,6 +248,9 @@ Use `vps-deployment.yml` - just sync files and set permissions.
 
 ### Laravel API
 Use `laravel-vps.yml` - includes database setup, migrations, and caching.
+
+### CodeIgniter Application
+Use `codeigniter-vps.yml` - supports both CI3 and CI4 with automatic detection.
 
 ### Vue.js SPA
 Use `vue-vps.yml` - builds production assets and configures SPA routing.

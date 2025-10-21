@@ -257,6 +257,14 @@ setup_existing_project() {
         else
             # Use existing configuration
             source "$denv_file"
+
+            # Ask about GitHub Actions setup for existing projects
+            echo ""
+            read -p "Setup GitHub Actions VPS deployment? (Y/n): " setup_github_actions
+            if [[ ! $setup_github_actions =~ ^[Nn]$ ]]; then
+                copy_github_actions_template
+            fi
+
             start_containers
         fi
     else
@@ -687,9 +695,9 @@ EOF
     print_step "PHP project README created"
 }
 
-# Copy GitHub Actions template
+# Copy GitHub Actions VPS deployment templates
 copy_github_actions_template() {
-    print_info "Setting up GitHub Actions workflow..."
+    print_info "Setting up GitHub Actions VPS deployment workflow..."
 
     # Create .github/workflows directory
     mkdir -p "$SELECTED_PROJECT_PATH/.github/workflows"
@@ -697,23 +705,80 @@ copy_github_actions_template() {
     local workflow_source="$DOCKER_ROOT/templates/github-actions"
     local workflow_file=""
 
-    case "$TECH_STACK" in
-        "laravel"|"codeigniter"|"symfony"|"php")
-            workflow_file="laravel.yml"
+    # Show available deployment options
+    echo -e "\n${BOLD}Select GitHub Actions deployment template:${NC}"
+    echo "1. General VPS deployment (Static sites, HTML/CSS/JS)"
+    echo "2. Laravel VPS deployment (PHP Laravel applications)"
+    echo "3. CodeIgniter VPS deployment (PHP CodeIgniter applications)"
+    echo "4. Vue.js PWA VPS deployment (Vue.js Progressive Web Apps)"
+    echo "5. Flutter Web VPS deployment (Flutter web applications)"
+    echo "6. Skip GitHub Actions setup"
+
+    read -p "Select deployment type [1]: " deployment_choice
+    case $deployment_choice in
+        1|"")
+            workflow_file="vps-deployment.yml"
+            print_info "Selected: General VPS deployment"
             ;;
-        "flutter")
-            workflow_file="flutter.yml"
+        2)
+            workflow_file="laravel-vps.yml"
+            print_info "Selected: Laravel VPS deployment"
             ;;
-        "vue")
-            workflow_file="vue.yml"
+        3)
+            workflow_file="codeigniter-vps.yml"
+            print_info "Selected: CodeIgniter VPS deployment"
+            ;;
+        4)
+            workflow_file="vue-vps.yml"
+            print_info "Selected: Vue.js PWA VPS deployment"
+            ;;
+        5)
+            workflow_file="flutter-web-vps.yml"
+            print_info "Selected: Flutter Web VPS deployment"
+            ;;
+        6)
+            print_info "Skipping GitHub Actions setup"
+            return 0
+            ;;
+        *)
+            print_warning "Invalid selection. Using general VPS deployment."
+            workflow_file="vps-deployment.yml"
             ;;
     esac
 
     if [ -n "$workflow_file" ] && [ -f "$workflow_source/$workflow_file" ]; then
-        # Copy and customize workflow
-        sed "s/{PROJECT_NAME}/$SELECTED_PROJECT/g" \
-            "$workflow_source/$workflow_file" > "$SELECTED_PROJECT_PATH/.github/workflows/ci-cd.yml"
-        print_step "GitHub Actions workflow created"
+        # Copy VPS deployment workflow
+        cp "$workflow_source/$workflow_file" "$SELECTED_PROJECT_PATH/.github/workflows/deploy-vps.yml"
+        print_step "GitHub Actions VPS deployment workflow created"
+
+        # Copy README for reference
+        if [ -f "$workflow_source/README.md" ]; then
+            cp "$workflow_source/README.md" "$SELECTED_PROJECT_PATH/.github/workflows/README.md"
+            print_step "GitHub Actions documentation copied"
+        fi
+
+        # Display setup instructions
+        echo -e "\n${BOLD}=== GitHub Actions Setup Complete ===${NC}"
+        echo -e "${BLUE}Next steps:${NC}"
+        echo -e "1. Add these secrets to your GitHub repository:"
+        echo -e "   - VPS_SSH_KEY (Private SSH key for VPS access)"
+        echo -e "   - VPS_HOST (VPS IP address or hostname)"
+        echo -e "   - VPS_USER (VPS username)"
+        echo -e "   - DOMAIN_NAME (Domain name for deployment)"
+
+        if [ "$workflow_file" = "laravel-vps.yml" ]; then
+            echo -e "   - DB_HOST, DB_DATABASE, DB_USERNAME, DB_PASSWORD"
+            echo -e "   - APP_KEY, APP_URL"
+        elif [ "$workflow_file" = "codeigniter-vps.yml" ]; then
+            echo -e "   - DB_HOST, DB_DATABASE, DB_USERNAME, DB_PASSWORD"
+            echo -e "   - APP_URL (CodeIgniter base URL)"
+        fi
+
+        echo -e "2. Push your project to GitHub"
+        echo -e "3. Deployment will trigger automatically on push to main branch"
+        echo -e "\n${YELLOW}For detailed setup instructions, see: .github/workflows/README.md${NC}"
+    else
+        print_error "GitHub Actions template not found: $workflow_file"
     fi
 }
 
